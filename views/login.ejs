@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title data-tag="title"></title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.6.2/css/bulma.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <nav class="navbar is-dark">
+        <div class="navbar-brand">
+            <a class="navbar-item" href="#">
+                <img src="images/logo.png" width="112" height="28">
+            </a>
+            <div class="navbar-burger burger" data-target="navbar">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+
+        <div id="navbar" class="navbar-menu">
+            <div class="navbar-start">
+            </div>
+
+            <div class="navbar-end">
+                <div class="navbar-item">
+                    <div class="field is-grouped">
+                        <p class="control">
+                            <a class="button is-twitch" href="https://api.twitch.tv/kraken/oauth2/authorize?response_type=token&client_id=<%= clientID; %>&redirect_uri=<%= redirectUri; %>&scope=">
+                                <span class="icon">
+                                    <i class="fab fa-twitch"></i>
+                                </span>
+                                <span data-tag="login-twitch"></span>
+                            </a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <section class="section" style="margin-top: 100px">
+        <div class="container is-centered">
+            <img src="images/sad.png">
+            <h1 class="title" data-tag="sorry"></h1>
+            <p class="subtitle" data-tag="need-to-login"></p>
+        </div>
+    </section>
+    
+    <script src="https://use.fontawesome.com/releases/v5.0.0/js/all.js"></script>
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+    <script src="js/script.js"></script>
+    <script>
+        $(document).ready(function () {
+            translate = new Translate();
+            translate.init('data-tag', 'en');
+            translate.process();
+        });
+    </script>
+</body>
+
+</html>

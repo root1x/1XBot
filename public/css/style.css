@@ -1,0 +1,60 @@
+html {
+    overflow: auto
+}
+
+.is-centered {
+    margin: 0 auto;
+    text-align: center
+}
+
+.modal-card-foot {
+    justify-content: flex-end
+}
+
+.table {
+    margin-bottom: 0
+}
+
+select, .select {
+    width: 100%
+}
+
+th, td {
+    text-align: center!important
+}
+
+.dropdown-menu {
+    min-width: 6rem!important
+}
+
+.button.is-twitch {
+    background-color: #6441a5;
+    border-color: transparent;
+    color: #ffffff
+}
+
+.modal.active {
+    animation: showModal 0.2s both;
+}
+
+.modal.hidden {
+    animation: hideModal 0.2s both
+}
+
+@-webkit-keyframes showModal {
+    0% {
+        opacity: 0
+    }
+    100% {
+        opacity: 1
+    }
+}
+
+@-webkit-keyframes hideModal {
+    0% {
+        opacity: 1
+    }
+    100% {
+        opacity: 0
+    }
+}

@@ -1,0 +1,36 @@
+{
+    "en": {
+        "added-the-quote": "Added the quote successfully",
+        "an-error-occurred": "An error occurred",
+        "cannot-add-the-quote": "An error occurred while adding the quote",
+        "days": "days",
+        "hours": "hours",
+        "minutes": "minutes",
+        "months": "months",
+        "not-following": "Not following",
+        "quote-not-found": "Quote not found",
+        "restricted-domain": "Done automatically by 1XBot. (Posted restricted domains)",
+        "restricted-word": "Done automatically by 1XBot. (Using restricted words)",
+        "seconds": "seconds",
+        "stream-not-online": "Stream is not online",
+        "weeks": "weeks",
+        "years": "years"
+    },
+    "tr": {
+        "added-the-quote": "Replik eklendi",
+        "an-error-occurred": "Bir hatayla karşılaşıldı",
+        "cannot-add-the-quote": "Replik eklenirken bir sorunla karşılaşıldı",
+        "days": "gün",
+        "hours": "saat",
+        "minutes": "dakika",
+        "months": "ay",
+        "not-following": "Takip etmiyor",
+        "quote-not-found": "Replik bulunamadı",
+        "restricted-domain": "1XBot tarafından otomatik olarak gerçekleştirildi. (Yasaklı link paylaşımı)",
+        "restricted-word": "1XBot tarafından otomatik olarak gerçekleştirildi. (Yasaklı kelime kullanımı)",
+        "seconds": "saniye",
+        "stream-not-online": "Yayın açık değil",
+        "weeks": "hafta",
+        "years": "yıl"
+    }
+}
