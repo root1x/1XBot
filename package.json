@@ -1,7 +1,7 @@
 {
   "name": "1XBot",
   "version": "1.0.0",
-  "description": "Manage your channel easily",
+  "description": "Moderate Twitch channels easily",
   "main": "main.js",
   "engines": {
     "node": "7.9.0"
