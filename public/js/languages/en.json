@@ -7,6 +7,7 @@
     "chat-moderation": "Chat Moderation",
     "message-moderation": "Message Moderation",
     "link-moderation": "Link Moderation",
+    "bot-editors": "Bot Editors",
     "select-language": "Language",
     "login-twitch": "Login with Twitch",
     "logout": "Logout",
@@ -32,6 +33,7 @@
     "sub-viewer": "Sub Viewers",
     "allow-links": "Allow users to share any link in the chat",
     "allowed-domains": "Allowed domains (ex: google.com,reddit.com)",
+    "editors": "Bot editors (use commas to seperate the users)",
 
     "add-new-command": "Add New Command",
     "edit-command": "Edit Command",
@@ -47,6 +49,7 @@
 
     "sorry": "Sorry!",
     "reminder": "Reminder:",
+    "permitted-channels": "You can moderate these channels:",
 
     "command-helper": "<p class=\"is-size-6 has-text-weight-semibold\">You can use these variables in your commands:</p><p class=\"is-size-6\"><code>%username%</code>: Username of the person who used the command<br /><code>%usernameorparam%</code>: Username of the person who used the command, or the parameter after the command<br /><code>%timesused%</code>: Amount of times the command has been used<br /><code>%followdate%</code>: Follow date of the user<br /><code>%followtime%</code>: Follow time of the user<br /><code>%addquote%</code>: Adding quotes (Command's content should be %addquote%, no additions)<br /><code>%getquote%</code>: Getting quotes. To search in quotes, you can put part of the quote as a parameter<br /><code>%randomviewer%</code>: A random viewer's username<br /><code>%uptime%</code>: Uptime of the stream<br /><code>%game%</code>: Game that is being played on the stream<br /><code>%title%</code>: Title of the stream<br /><code>%commands%</code>: Lists commands</p><br /><p class=\"is-size-6 has-text-weight-semibold\">You can use these variables in your subscription messages:</p><p class=\"is-size-6\"><code>%username%</code>: Subscriber's username<br /><code>%months%</code>: Amount of months the user has subscribed(only in resubscriptions)<br /><code>%gifter%</code>: Username of the one who gifted the sub(only when someone gifts a subscription)</p>",
 

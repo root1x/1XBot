@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title data-tag="title"></title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.6.2/css/bulma.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <nav class="navbar is-dark">
+        <div class="navbar-brand">
+            <a class="navbar-item" href="/">
+                <img src="images/logo.png" width="112" height="28">
+            </a>
+            <div class="navbar-burger burger" data-target="navbar">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+
+        <div id="navbar" class="navbar-menu">
+            <div class="navbar-start">
+                <a class="navbar-item" data-tag="commands" data-modal="#commands"></a>
+                <a class="navbar-item" data-tag="sub-messages" data-modal="#subMessages"></a>
+                <a class="navbar-item" data-tag="quotes" data-modal="#quotes"></a>
+                <a class="navbar-item" data-tag="chat-moderation" data-modal="#chatModeration"></a>
+                <% if (channel.name === username) { %><a class="navbar-item" data-tag="bot-editors" data-modal="#botEditors"></a><% } %>
+            </div>
+
+            <div class="navbar-end">
+                <div class="navbar-item">
+                    <div class="field is-grouped">
+                        <div class="dropdown is-hoverable">
+                            <div class="dropdown-trigger">
+                                <button class="button" aria-haspopup="true">
+                                    <span data-tag="select-language"></span>
+                                    <span class="icon is-small">
+                                        <i class="fas fa-angle-down" aria-hidden="true"></i>
+                                    </span>
+                                </button>
+                            </div>
+                            <div class="dropdown-menu" role="menu">
+                                <div class="dropdown-content">
+                                    <a class="dropdown-item" data-language="en">
+                                        English
+                                    </a>
+                                    <a class="dropdown-item" data-language="tr">
+                                        Türkçe
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="navbar-item">
+                    <div class="field is-grouped">
+                        <p class="control">
+                            <a class="button is-twitch" href="logout">
+                                <span data-tag="logout"></span>
+                            </a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <section class="section">
+        <div class="container">
+            <article class="message is-dark">
+                <div class="message-header">
+                    <p data-tag="reminder"></p>
+                </div>
+                <div class="message-body" data-tag="command-helper"></div>
+            </article>
+            <iframe style="width: 100%; height: 270px" src="https://www.twitch.tv/<%= channel.name.replace('#', '') %>/chat?popout="></iframe>
+        </div>
+    </section>
+
+    <div id="commands" class="modal hidden">
+        <div class="modal-background"></div>
+        <div class="modal-card">
+            <header class="modal-card-head">
+                <p class="modal-card-title" data-tag="commands"></p>
+                <button class="delete" aria-label="close"></button>
+            </header>
+            <section class="modal-card-body">
+                <table class="table is-bordered is-striped is-narrow is-hoverable is-fullwidth">
+                    <thead>
+                        <tr>
+                            <th data-tag="command-name"></th>
+                            <th data-tag="command-output"></th>
+                            <th data-tag="actions"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% commands.forEach(function (command) {%>
+                            <tr data-command-id="<%= command._id; %>" data-command-info="<%= JSON.stringify(command); %>">
+                                <td class="name">
+                                    <%= command.name; %>
+                                </td>
+                                <td class="content">
+                                    <%= command.content; %>
+                                </td>
+                                <td class="actions">
+                                    <p class="field">
+                                        <a class="button is-small" data-modal="#editCommand">
+                                            <span class="icon is-small">
+                                                <i class="fas fa-pencil-alt"></i>
+                                            </span>
+                                        </a>
+                                        <a class="button is-small" data-modal="#removeCommand">
+                                            <span class="icon is-small">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </span>
+                                        </a>
+                                    </p>
+                                </td>
+                            </tr>
+                            <% }); %>
+                    </tbody>
+                </table>
+            </section>
+            <footer class="modal-card-foot">
+                <button class="button is-dark" data-tag="add-new-command" data-modal="#addCommand"></button>
+            </footer>
+        </div>
+    </div>
+
+    <div id="addCommand" class="modal hidden">
+        <div class="modal-background"></div>
+        <div class="modal-card">
+            <header class="modal-card-head">
+                <p class="modal-card-title" data-tag="add-new-command"></p>
+                <button class="delete" aria-label="close"></button>
+            </header>
+            <form id="addCommandForm" action="api/addCommand" method="post">
+                <section class="modal-card-body">
+                    <div class="field">
+                        <label class="label" data-tag="command-name"></label>
+                        <div class="control">
+                            <input class="input" name="name" type="text" data-tag="command-name">
+                            <p class="help is-danger is-hidden" data-tag="command-exists"></p>
+                            <p class="help is-danger is-hidden" data-tag="invalid-name"></p>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label class="label" data-tag="command-output"></label>
+                        <div class="control">
+                            <textarea class="textarea" name="content" data-tag="command-output"></textarea>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label class="label" data-tag="command-cooldown"></label>
+                        <div class="control">
+                            <input class="input" name="cooldown" type="text" data-tag="command-cooldown">
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label class="label" data-tag="permissions"></label>
+                        <div class="control">
+                            <div class="select">
+                                <select name="permission">
+                                    <option value="3" data-tag="broadcaster-only"></option>
+                                    <option value="2" data-tag="moderator-only"></option>
+                                    <option value="1" data-tag="sub-only"></option>
+                                    <option value="0" data-tag="everyone"></option>
+                                </select>
+                            </div>
+                        </div>
+                        <p class="help is-danger is-hidden" data-tag="an-error-occurred"></p>
+                    </div>
+                </section>
+            </form>
+            <footer class="modal-card-foot">
+                <button class="button is-dark" data-submit="#addCommandForm" data-tag="add-new-command"></button>
+            </footer>
+        </div>
+    </div>
+
+    <div id="editCommand" class="modal hidden">
+        <div class="modal-background"></div>
+        <div class="modal-card">
+            <header class="modal-card-head">
+                <p class="modal-card-title" data-tag="edit-command"></p>
+                <button class="delete" aria-label="close"></button>
+            </header>
+            <form id="editCommandForm" action="api/editCommand" method="post">
+                <section class="modal-card-body">
+                    <input type="hidden" name="id" id="commandID">
+                    <div class="field">
+                        <label class="label" data-tag="command-name"></label>
+                        <div class="control">
+                            <input class="input" name="name" type="text" data-tag="command-name">
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label class="label" data-tag="command-output"></label>
+                        <div class="control">
+                            <textarea class="textarea" name="content" data-tag="command-output"></textarea>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label class="label" data-tag="command-cooldown"></label>
+                        <div class="control">
+                            <input class="input" name="cooldown" type="text" data-tag="command-cooldown">
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label class="label" data-tag="permissions"></label>
+                        <div class="control">
+                            <div class="select">
+                                <select name="permission">
+                                    <option value="3" data-tag="broadcaster-only"></option>
+                                    <option value="2" data-tag="moderator-only"></option>
+                                    <option value="1" data-tag="sub-only"></option>
+                                    <option value="0" data-tag="everyone"></option>
+                                </select>
+                            </div>
+                        </div>
+                        <p class="help is-danger is-hidden" data-tag="an-error-occurred"></p>
+                        <p class="help is-danger is-hidden" data-tag="command-not-found"></p>
+                    </div>
+                </section>
+            </form>
+            <footer class="modal-card-foot">
+                <button class="button is-dark" data-submit="#editCommandForm" data-tag="edit-command"></button>
+            </footer>
+        </div>
+    </div>
+
+    <div id="removeCommand" class="modal hidden">
+        <div class="modal-background"></div>
+        <div class="modal-card">
+            <header class="modal-card-head">
+                <p class="modal-card-title" data-tag="remove-command"></p>
+                <button class="delete" aria-label="close"></button>
+            </header>
+            <form id="removeCommandForm" action="api/removeCommand" method="post">
+                <input type="hidden" name="id" id="commandID">
+            </form>
+            <section class="modal-card-body" data-tag="are-you-sure"></section>
+            <footer class="modal-card-foot">
+                <button class="button is-dark" data-submit="#removeCommandForm" data-tag="yes"></button>
+                <button class="button" data-tag="no"></button>
+            </footer>
+        </div>
+    </div>
+
+    <div id="subMessages" class="modal hidden">
+        <div class="modal-background"></div>
+        <div class="modal-card">
+            <header class="modal-card-head">
+                <p class="modal-card-title" data-tag="sub-messages"></p>
+                <button class="delete" aria-label="close"></button>
+            </header>
+            <form id="subMessagesForm" action="api/subMessages" method="post">
+                <section class="modal-card-body">
+                    <div class="field">
+                        <label class="label" data-tag="subscription"></label>
+                        <div class="control">
+                            <textarea class="textarea" name="subscription" data-tag="subscription"><%= channel.subscription; %></textarea>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label class="label" data-tag="gifted-subscription"></label>
+                        <div class="control">
+                            <textarea class="textarea" name="subscriptionGift" data-tag="gifted-subscription"><%= channel.subscriptionGift; %></textarea>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label class="label" data-tag="resubscription"></label>
+                        <div class="control">
+                            <textarea class="textarea" name="resubscription" data-tag="resubscription"><%= channel.resubscription; %></textarea>
+                        </div>
+                    </div>
+                </section>
+            </form>
+            <footer class="modal-card-foot">
+                <button class="button is-dark" data-submit="#subMessagesForm" data-tag="update"></button>
+            </footer>
+        </div>
+    </div>
+
+    <div id="quotes" class="modal hidden">
+        <div class="modal-background"></div>
+        <div class="modal-card">
+            <header class="modal-card-head">
+                <p class="modal-card-title" data-tag="quotes"></p>
+                <button class="delete" aria-label="close"></button>
+            </header>
+            <section class="modal-card-body">
+                <table class="table is-bordered is-striped is-narrow is-hoverable is-fullwidth">
+                    <thead>
+                        <tr>
+                            <th data-tag="added-by"></th>
+                            <th data-tag="quote-content"></th>
+                            <th data-tag="actions"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% quotes.forEach(function (quote) {%>
+                            <tr data-quote-id="<%= quote._id; %>" data-quote-info="<%= JSON.stringify(quote); %>">
+                                <td class="addedBy">
+                                    <%= quote.addedBy; %>
+                                </td>
+                                <td class="content">
+                                    <%= quote.content; %>
+                                </td>
+                                <td class="actions">
+                                    <p class="field">
+                                        <a class="button is-small" data-modal="#editQuote">
+                                            <span class="icon is-small">
+                                                <i class="fas fa-pencil-alt"></i>
+                                            </span>
+                                        </a>
+                                        <a class="button is-small" data-modal="#removeQuote">
+                                            <span class="icon is-small">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </span>
+                                        </a>
+                                    </p>
+                                </td>
+                            </tr>
+                            <% }); %>
+                    </tbody>
+                </table>
+            </section>
+            <footer class="modal-card-foot">
+                <button class="button is-dark" data-tag="add-new-quote" data-modal="#addQuote"></button>
+            </footer>
+        </div>
+    </div>
+
+    <div id="addQuote" class="modal hidden">
+        <div class="modal-background"></div>
+        <div class="modal-card">
+            <header class="modal-card-head">
+                <p class="modal-card-title" data-tag="add-new-quote"></p>
+                <button class="delete" aria-label="close"></button>
+            </header>
+            <form id="addQuoteForm" action="api/addQuote" method="post">
+                <section class="modal-card-body">
+                    <div class="field">
+                        <label class="label" data-tag="quote-by"></label>
+                        <div class="control">
+                            <input class="input" name="quoteBy" type="text" data-tag="quote-by">
+                            <p class="help is-danger is-hidden" data-tag="invalid-quote-owner"></p>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label class="label" data-tag="quote-content"></label>
+                        <div class="control">
+                            <textarea class="textarea" name="content" data-tag="quote-content"></textarea>
+                            <p class="help is-danger is-hidden" data-tag="invalid-quote"></p>
+                            <p class="help is-danger is-hidden" data-tag="an-error-occurred"></p>
+                        </div>
+                    </div>
+                </section>
+            </form>
+            <footer class="modal-card-foot">
+                <button class="button is-dark" data-submit="#addQuoteForm" data-tag="add-new-quote"></button>
+            </footer>
+        </div>
+    </div>
+
+    <div id="editQuote" class="modal hidden">
+        <div class="modal-background"></div>
+        <div class="modal-card">
+            <header class="modal-card-head">
+                <p class="modal-card-title" data-tag="edit-quote"></p>
+                <button class="delete" aria-label="close"></button>
+            </header>
+            <form id="editQuoteForm" action="api/editQuote" method="post">
+                <section class="modal-card-body">
+                    <input type="hidden" name="id" id="quoteID">
+                    <div class="field">
+                        <label class="label" data-tag="quote-content"></label>
+                        <div class="control">
+                            <textarea class="textarea" name="content" data-tag="quote-content"></textarea>
+                            <p class="help is-danger is-hidden" data-tag="invalid-quote"></p>
+                            <p class="help is-danger is-hidden" data-tag="an-error-occurred"></p>
+                        </div>
+                    </div>
+                </section>
+            </form>
+            <footer class="modal-card-foot">
+                <button class="button is-dark" data-submit="#editQuoteForm" data-tag="edit-quote"></button>
+            </footer>
+        </div>
+    </div>
+
+    <div id="removeQuote" class="modal hidden">
+        <div class="modal-background"></div>
+        <div class="modal-card">
+            <header class="modal-card-head">
+                <p class="modal-card-title" data-tag="remove-quote"></p>
+                <button class="delete" aria-label="close"></button>
+            </header>
+            <form id="removeQuoteForm" action="api/removeQuote" method="post">
+                <input type="hidden" name="id" id="quoteID">
+            </form>
+            <section class="modal-card-body" data-tag="are-you-sure"></section>
+            <footer class="modal-card-foot">
+                <button class="button is-dark" data-submit="#removeQuoteForm" data-tag="yes"></button>
+                <button class="button" data-tag="no"></button>
+            </footer>
+        </div>
+    </div>
+
+    <div id="chatModeration" class="modal hidden">
+            <div class="modal-background"></div>
+            <div class="modal-card">
+                <header class="modal-card-head">
+                    <p class="modal-card-title" data-tag="chat-moderation"></p>
+                    <button class="delete" aria-label="close"></button>
+                </header>
+                <section class="modal-card-body">
+                    <div class="is-centered">
+                        <button class="button is-dark" data-modal="#messageModeration" data-tag="message-moderation"></button>
+                        <button class="button is-dark" data-modal="#linkModeration" data-tag="link-moderation"></button>
+                    </div>
+                </section>
+            </div>
+        </div>
+
+    <div id="messageModeration" class="modal hidden">
+        <div class="modal-background"></div>
+        <div class="modal-card">
+            <header class="modal-card-head">
+                <p class="modal-card-title" data-tag="message-moderation"></p>
+                <button class="delete" aria-label="close"></button>
+            </header>
+            <form id="messageModerationForm" action="api/messageModeration" method="post">
+                <section class="modal-card-body">
+                    <div class="field">
+                        <label class="label" data-tag="timeout-words"></label>
+                        <div class="control">
+                            <textarea class="textarea" name="timeoutWords" data-tag="timeout-words"><%= channel.timeoutWords; %></textarea>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label class="label" data-tag="ban-words"></label>
+                        <div class="control">
+                            <textarea class="textarea" name="banWords" data-tag="ban-words"><%= channel.banWords; %></textarea>
+                            <p class="help is-danger is-hidden" data-tag="an-error-occurred"></p>
+                        </div>
+                    </div>
+                </section>
+            </form>
+            <footer class="modal-card-foot">
+                <button class="button is-dark" data-submit="#messageModerationForm" data-tag="update"></button>
+            </footer>
+        </div>
+    </div>
+
+    <div id="linkModeration" class="modal hidden">
+        <div class="modal-background"></div>
+        <div class="modal-card">
+            <header class="modal-card-head">
+                <p class="modal-card-title" data-tag="link-moderation"></p>
+                <button class="delete" aria-label="close"></button>
+            </header>
+            <form id="linkModerationForm" action="api/linkModeration" method="post">
+                <section class="modal-card-body">
+                    <div class="tabs is-centered">
+                        <ul>
+                            <li data-tab="#nonSubViewer" data-tab-target="linkModeration" class="is-active">
+                                <a data-tag="non-sub-viewer"></a>
+                            </li>
+                            <li data-tab="#subViewer" data-tab-target="linkModeration">
+                                <a data-tag="sub-viewer"></a>
+                            </li>
+                        </ul>
+                    </div>
+                    <div id="nonSubViewer" data-tab-category="linkModeration">
+                        <div class="field">
+                            <label class="checkbox">
+                                <input type="checkbox" data-toggle="#nonSubAllowedDomains"<% if (!channel.nonSubDomainCheck) {%> checked<% } %>>
+                                <label data-tag="allow-links"></label>
+                            </label>
+                        </div>
+                        <div class="field">
+                            <label class="label" data-tag="allowed-domains"></label>
+                            <div class="control">
+                                <textarea class="textarea" name="nonSubAllowedDomains" id="nonSubAllowedDomains" data-tag="allowed-domains"<% if (!channel.nonSubDomainCheck) {%> disabled<% }%>><%= channel.nonSubAllowedDomains; %></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="subViewer" data-tab-category="linkModeration" class="is-hidden">
+                        <div class="field">
+                            <label class="checkbox">
+                                <input type="checkbox" data-toggle="#subAllowedDomains"<% if (!channel.subDomainCheck) {%> checked<% } %>>
+                                <label data-tag="allow-links"></label>
+                            </label>
+                        </div>
+                        <div class="field">
+                            <label class="label" data-tag="allowed-domains"></label>
+                            <div class="control">
+                                <textarea class="textarea" name="subAllowedDomains" id="subAllowedDomains" data-tag="allowed-domains"<% if (!channel.subDomainCheck) {%> disabled<% }%>><%= channel.subAllowedDomains; %></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </form>
+            <footer class="modal-card-foot">
+                <button class="button is-dark" data-submit="#linkModerationForm" data-tag="update"></button>
+            </footer>
+        </div>
+    </div>
+
+    <div id="botEditors" class="modal hidden">
+        <div class="modal-background"></div>
+        <div class="modal-card">
+            <header class="modal-card-head">
+                <p class="modal-card-title" data-tag="bot-editors"></p>
+                <button class="delete" aria-label="close"></button>
+            </header>
+            <form id="botEditorsForm" action="api/updateBotEditors" method="post">
+                <section class="modal-card-body">
+                    <div class="field">
+                        <label class="label" data-tag="editors"></label>
+                        <div class="control">
+                            <textarea class="textarea" name="botEditors" data-tag="editors"><%= channel.editors; %></textarea>
+                            <p class="help is-danger is-hidden" data-tag="an-error-occurred"></p>
+                        </div>
+                    </div>
+                </section>
+            </form>
+            <footer class="modal-card-foot">
+                <button class="button is-dark" data-submit="#botEditorsForm" data-tag="update"></button>
+            </footer>
+        </div>
+    </div>
+
+    <script>var currentChannel = "<%=channel.name.replace('#', '');%>";</script>
+    <script src="https://use.fontawesome.com/releases/v5.0.0/js/all.js"></script>
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+    <script src="js/script.js"></script>
+    <script>
+        $(document).ready(function () {
+            translate = new Translate();
+            translate.init('data-tag', '<%= channel.language %>');
+            translate.process();
+        });
+    </script>
+</body>
+
+</html>

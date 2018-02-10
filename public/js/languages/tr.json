@@ -7,6 +7,7 @@
     "chat-moderation": "Sohbet Moderasyonu",
     "message-moderation": "Mesaj Moderasyonu",
     "link-moderation": "Link Moderasyonu",
+    "bot-editors": "Bot Editörleri",
     "select-language": "Dil",
     "login-twitch": "Twitch ile Giriş Yap",
     "logout": "Çıkış Yap",
@@ -32,6 +33,7 @@
     "sub-viewer": "Abone İzleyici",
     "allow-links": "Kullanıcıların sohbette her linki paylaşmasına izin ver",
     "allowed-domains": "İzin verilen alan adları (örn: google.com,reddit.com)",
+    "editors": "Bot editörleri (kullanıcıları virgül ile ayır)",
 
     "add-new-command": "Yeni Komut Ekle",
     "edit-command": "Komut Düzenle",
@@ -47,6 +49,7 @@
 
     "sorry": "Üzgünüm!",
     "reminder": "Hatırlatma",
+    "permitted-channels": "Bu kanalları yönetebilirsiniz:",
 
     "command-helper": "<p class=\"is-size-6 has-text-weight-semibold\">Komutlarının içerisinde şu değişkenleri kullanabilirsin:</p><p class=\"is-size-6\"><code>%username%</code>: Komutu kullanan kullanıcının adı<br /><code>%usernameorparam%</code>: Komutu kullanan kullanıcının adı veya komuttan sonra yazdığı kullanıcının adı<br /><code>%timesused%</code>: Komutun kullanılma sayısı<br /><code>%followdate%</code>: Kullanıcının takip tarihi<br /><code>%followtime%</code>: Kullanıcının takip süresi<br /><code>%addquote%</code>: Replik ekleme (Komutun içeriği %addquote% olmalı, başka eklenti yapılmamalı)<br /><code>%getquote%</code>: Replik getirme komutu. Aratma yapmak için parametre olarak repliğin bir bölümü girilebilir<br /><code>%randomviewer%</code>: Rastgele bir izleyicinin kullanıcı adı<br /><code>%uptime%</code>: Yayın süresi<br /><code>%game%</code>: Oynanılan oyun<br /><code>%title%</code>: Yayın başlığı<br /><code>%commands%</code>: Komutları listeler</p><br /><p class=\"is-size-6 has-text-weight-semibold\">Abone kutlama mesajlarının içerisinde şu değişkenleri kullanabilirsin:</p><p class=\"is-size-6\"><code>%username%</code>: Abone olan kişinin kullanıcı adı<br /><code>%months%</code>: Abone olan kişinin abone olduğu ay sayısı (sadece abone yenilemede)<br /><code>%gifter%</code>: Aboneliği hediye eden kişinin kullanıcı adı (sadece abonelik hediye edildiğinde)</p>",
 

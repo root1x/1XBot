@@ -70,43 +70,50 @@ function checkCooldown(user, command) {
     }
 }
 
+function checkPermissions(data) {
+    return new Promise((resolve, reject) => {
+        data.username = data.username.replace('#', '');
+        schemas.channels.find({
+            name: data.channel
+        }, (error, response) => {
+            if (response.length > 0 && (response[0]['editors'].indexOf(data.username) !== -1 || response[0].name.replace('#', '') === data.username)) {
+                resolve(true);
+            } else {
+                resolve(false);
+            }
+        });
+    });
+}
+
 function checkLogin(cookies) {
     return new Promise(async (resolve, reject) => {
         if (!cookies.token)
             resolve(false);
-
-        var user = JSON.parse(await request(`https://api.twitch.tv/kraken?oauth_token=${cookies.token}&client_id=b31o4btkqth5bzbvr9ub2ovr79umhh`));
-        if (user.error)
-            resolve(false);
-
-        var channel = `#${user.token.user_name}`;
-        schemas.channels.find({
-            name: channel
-        }, (error, response) => {
-            if (response.length === 0)
-                new schemas.channels({
+        else {
+            var user = JSON.parse(await request(`https://api.twitch.tv/kraken?oauth_token=${cookies.token}&client_id=b31o4btkqth5bzbvr9ub2ovr79umhh`));
+            if (user.error)
+                resolve(false);
+            else  {
+                var channel = `#${user.token.user_name}`;
+                schemas.channels.find({
                     name: channel
-                }).save((error, response) => {
-                    global.channels[channel] = {};
-                    global.channels[channel]['commands'] = {};
-                    global.channels[channel]['banWords'] = '';
-                    global.channels[channel]['language'] = 'en';
-                    global.channels[channel]['subscription'] = '';
-                    global.channels[channel]['subscriptionGift'] = '',
-                    global.channels[channel]['resubscription'] = '';
-                    global.channels[channel]['timeoutWords'] = '';
-                    global.channels[channel]['nonSubDomainCheck'] = false;
-                    global.channels[channel]['nonSubAllowedDomains'] = '';
-                    global.channels[channel]['subDomainCheck'] = false;
-                    global.channels[channel]['subAllowedDomains'] = '';
-
-                    global.client.join(channel.replace('#', ''));
-
-                    resolve(channel);
+                }, (error, response) => {
+                    if (response.length === 0)
+                        new schemas.channels({
+                            name: channel
+                        }).save((error, response) => {
+                            global.channels[channel] = response;
+                            global.channels[channel]['commands'] = {};
+        
+                            global.client.join(channel.replace('#', ''));
+        
+                            resolve(channel);
+                        });
+                    else
+                        resolve(channel);
                 });
-            else
-                resolve(channel);
-        });
+            }
+        }
     });
 }
 
@@ -199,6 +206,20 @@ function getCommands(channel) {
 
             resolve(response);
         });
+    });
+}
+
+function getPermissions(data) {
+    return new Promise(async (resolve, reject) => {
+        var addedChannels = [];
+        var channels = JSON.parse(await request(`https://twitchstuff.3v.fi/modlookup/api/user/${data.username}`))['channels'];
+
+        for (var i=0; i<channels.length; i++) {
+            var exists = await checkPermissions({username: data.username, channel: `#${channels[i].name}`})
+            !exists || addedChannels.push(channels[i]);
+        }
+
+        resolve(addedChannels);
     });
 }
 
@@ -464,6 +485,26 @@ function removeQuote(data) {
     });
 }
 
+function updateBotEditors(data) {
+    return new Promise((resolve, reject) => {
+        schemas.channels.findOneAndUpdate({
+            name: data.channel
+        }, {
+            editors: data.botEditors.split(',')
+        }, (error) => {
+            if (error)
+                resolve({
+                    error: 'an-error-occurred',
+                    success: false
+                });
+
+            resolve({
+                success: true
+            });
+        });
+    });
+}
+
 function updateLanguage(data) {
     return new Promise((resolve, reject) => {
         schemas.channels.findOneAndUpdate({
@@ -572,16 +613,19 @@ module.exports = {
     addQuote,
     checkCooldown,
     checkLogin,
+    checkPermissions,
     editCommand,
     editQuote,
     getChannels,
     getCommands,
+    getPermissions,
     getPrivilege,
     getQuotes,
     handleMessage,
     quotify,
     removeCommand,
     removeQuote,
+    updateBotEditors,
     updateLanguage,
     updateLinkModeration,
     updateMessageModeration,

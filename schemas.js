@@ -2,13 +2,17 @@ const mongoose = require('mongoose');
 
 const config = require('./config.js');
 
-mongoose.connect(`mongodb://${config.dbSettings.host}/${config.dbSettings.name}`);
+mongoose.connect('mongodb://' + config.dbSettings.host + '/' + config.dbSettings.name);
 mongoose.Promise = global.Promise;
 
 const channels = mongoose.model('channels', new mongoose.Schema({
     banWords: {
         default: '',
         type: String
+    },
+    editors: {
+        default: [],
+        type: Array
     },
     language: {
         default: 'en',

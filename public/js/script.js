@@ -74,7 +74,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     $(document).on('click', '[data-language]', function () {
         var language = $(this).attr('data-language');
-        $.post('/api/updateLanguage', {
+        $.post(`/api/updateLanguage/${currentChannel}`, {
             language: language
         }, function (response) {
             if (response.success) {
@@ -88,7 +88,7 @@ document.addEventListener('DOMContentLoaded', function () {
         var targetFormName = $(this).attr('data-submit');
         var targetForm = $(targetFormName);
         $(`${$(this).attr('data-submit')} p[data-tag]`).addClass('is-hidden');
-        $.post($(targetForm).attr('action'), objectifyForm($(targetForm).serializeArray()), function (response) {
+        $.post(`${$(targetForm).attr('action')}/${currentChannel}`, objectifyForm($(targetForm).serializeArray()), function (response) {
             if (response.success) {
                 toggleModal(`#${$(targetFormName).parent().parent().attr('id')}`);
                 if (targetFormName === '#addCommandForm') {

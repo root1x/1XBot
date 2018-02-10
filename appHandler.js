@@ -71,7 +71,7 @@ global.channels = {};
             if (handleMessage && (global.channels[channel]['subDomainCheck'] || global.channels[channel]['nonSubDomainCheck'])) {
                 var subAllowedDomains = global.channels[channel]['subAllowedDomains'].split(',');
                 var nonSubAllowedDomains = global.channels[channel]['nonSubAllowedDomains'].split(',');
-                var caughtWebsites = message.toLowerCase().match(/(https?:\/\/)?(([a-zA-Z0-9-]*)\.){0,}([a-zA-Z0-9-]*)\.([a-zA-Z]*).*?/g);
+                var caughtWebsites = message.toLowerCase().match(/(https?:\/\/)?(([a-zA-Z0-9-]*)\.){0,}([a-zA-Z0-9-]{2,}\.)([a-zA-Z]{2,}).*?/g);
                 caughtWebsites === null || caughtWebsites.forEach((site) => {
                     if (handleMessage) {
                         site.indexOf('http://') !== 0 || (site = site.replace('http://', ''));
