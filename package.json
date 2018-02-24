@@ -1,7 +1,7 @@
 {
-  "name": "1xbot",
+  "name": "1XBot",
   "version": "1.0.0",
-  "description": "Manage your channel easily",
+  "description": "Moderate Twitch channels easily",
   "main": "main.js",
   "engines": {
     "node": "7.9.0"
@@ -12,7 +12,6 @@
     "cookie-parser": "^1.4.3",
     "ejs": "^2.5.7",
     "express": "^4.16.2",
-    "express-subdomain": "^1.0.5",
     "http": "0.0.0",
     "moment": "^2.20.1",
     "mongoose": "^5.0.3",
@@ -20,8 +19,5 @@
     "request": "^2.83.0",
     "request-promise": "^4.2.2",
     "tmi.js": "^1.2.1"
-  },
-  "scripts": {
-    "start": "forever start main.js"
   }
 }
