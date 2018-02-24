@@ -297,7 +297,7 @@ async function handleMessage(command, user, channel, split, language) {
     }
 
     if (content.indexOf('%followdate%') !== -1) {
-        var followDateInfo = await request(`http://api.newtimenow.com/follow-length/?channel=${channel.replace('#', '')}&user=${split[1] ? split[1].replace(/[^a-z0-9]/gi, '') : user.username}`);
+        var followDateInfo = await request(`http://api.newtimenow.com/follow-length/?channel=${channel.replace('#', '')}&user=${split[1] ? split[1].replace(/[^a-z_0-9]/gi, '') : user.username}`);
         followDateInfo = followDateInfo.trim()
         if (followDateInfo !== 'Not following...') {
             followDateInfo = moment(followDateInfo).format('DD/MM/YYYY - HH:mm:ss');
@@ -308,8 +308,8 @@ async function handleMessage(command, user, channel, split, language) {
     }
 
     if (content.indexOf('%followtime%') !== -1) {
-        var followTimeInfo = await request(`https://decapi.me/twitch/followage/${channel.replace('#', '')}/${split[1] ? split[1].replace(/[^a-z0-9]/gi, '') : user.username}?precision=2`);
-        if (followTimeInfo.indexOf('not following') !== -1 || followTimeInfo.indexOf('user with the') !== -1 || followTimeInfo.indexOf('cannot follow') !== -1) {
+        var followTimeInfo = await request(`https://decapi.me/twitch/followage/${channel.replace('#', '')}/${split[1] ? split[1].replace(/[^a-z_0-9]/gi, '') : user.username}?precision=2`);
+        if (followTimeInfo.indexOf('not following') !== -1 || followTimeInfo.indexOf('user with the') !== -1 || followTimeInfo.indexOf('not found') !== -1 || followTimeInfo.indexOf('cannot follow') !== -1) {
             content = content.split('%followtime%').join(languages[language]['not-following']);
         } else {
             if (language !== 'en') {
