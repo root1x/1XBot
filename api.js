@@ -303,7 +303,7 @@ async function handleMessage(command, user, channel, split, language) {
             followDateInfo = moment(followDateInfo).format('DD/MM/YYYY - HH:mm:ss');
             content = content.split('%followdate%').join(followDateInfo);
         } else {
-            content = content.split('%followdate%').join('-');
+            content = content.split('%followdate%').join(languages[language]['not-following']);
         }
     }
 
