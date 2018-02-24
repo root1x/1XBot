@@ -4,12 +4,12 @@ const express = require('express');
 
 const app = express();
 
-const api = require('./api.js');
+const api = require('./essentials/api.js');
 const config = require('./config.js');
-const functions = require('./functions.js');
-const languages = require('./language.json');
+const functions = require('./essentials/functions.js');
+const languages = require('./essentials/language.json');
 
-const appHandler = require('./appHandler.js');
+const appHandler = require('./essentials/appHandler.js');
 
 app.set('views', __dirname + '/views');
 app.use(express.static(__dirname + '/public'));

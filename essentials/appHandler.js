@@ -1,7 +1,7 @@
 const twitch = require('tmi.js');
 
 const api = require('./api.js');
-const config = require('./config.js');
+const config = require('./../config.js');
 const functions = require('./functions.js');
 const language = require('./language.json');
 

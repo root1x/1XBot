@@ -1,4 +1,4 @@
-const config = require('./config.js');
+const config = require('./../config.js');
 
 // Function to log stuff onto console
 function log(type, info) {

@@ -3,7 +3,7 @@ const moment = require('moment');
 const mongoose = require('mongoose');
 const request = require('request-promise');
 
-const config = require('./config.js');
+const config = require('./../config.js');
 const functions = require('./functions.js');
 const languages = require('./language.json');
 const schemas = require('./schemas.js');

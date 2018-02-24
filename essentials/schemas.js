@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const config = require('./config.js');
+const config = require('./../config.js');
 
 mongoose.connect('mongodb://' + config.dbSettings.host + '/' + config.dbSettings.name);
 mongoose.Promise = global.Promise;
