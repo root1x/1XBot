@@ -1,111 +1,541 @@
-const twitch = require('tmi.js');
+const bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser');
+const express = require('express');
+
+const app = express();
 
 const api = require('./api.js');
 const config = require('./../config.js');
 const functions = require('./functions.js');
-const language = require('./language.json');
+const languages = require('./language.json');
 
-global.client;
-global.channels = {};
+app.set('views', __dirname + '/../views');
+app.use(express.static(__dirname + '/../public'));
+app.use(cookieParser());
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({
+    extended: true
+}));
 
-(async () => {
-    var dbChannels = await api.getChannels();
-    dbChannels.forEach((channel) => {
-        global.channels[channel.name] = channel;
-        global.channels[channel.name]['commands'] = {};
-        config.botSettings.channels.push(channel.name);
-    });
+app.get('/', async (req, res) => {
+    var username = await api.checkLogin(req.cookies);
+    if (!username) {
+        res.render('login.ejs', {
+            clientID: config.serverSettings.clientID,
+            redirectUri: config.serverSettings.redirectUri
+        });
+    } else {
+        var permission = await api.checkPermissions({username: username, channel: req.params.channel});
+        try {
+            var channel = await api.getChannels(username);
+            var permissions = await api.getPermissions({username: username.replace('#', '')});
 
-    functions.log('info', 'Loaded channel list');
-
-    var dbCommands = await api.getCommands();
-    dbCommands.forEach((command) => {
-        global.channels[command.channel]['commands'][command.name] = command;
-    });
-
-    functions.log('info', 'Loaded command list');
-
-    global.client = new twitch.client(config.botSettings);
-    global.client.connect();
-
-    global.client.on('subgift', function (channel, username, recipient, method) {
-        !global.channels[channel]['subscriptionGift'].trim() || global.client.say(channel, global.channels[channel]['subscriptionGift'].split('%username%').join(recipient).split('%gifter%').join(username));
-    });
-
-    global.client.on('subscription', function (channel, username, method) {
-        !global.channels[channel]['subscription'].trim() || global.client.say(channel, global.channels[channel]['subscription'].split('%username%').join(username));
-    });
-
-    global.client.on('resub', function (channel, username, months, message) {
-        !global.channels[channel]['resubscription'].trim() || global.client.say(channel, global.channels[channel]['resubscription'].split('%username%').join(username).split('%months%').join(months));
-    });
-
-    global.client.on('chat', async (channel, user, message, self) => {
-        if (self) return;
-
-        var handleMessage = true;
-        var split = message.split(' ');
-        var userPermission = api.getPrivilege(user);
-
-        if (userPermission < 2) {
-            var banWords = global.channels[channel]['banWords'].split(',');
-            var toWords = global.channels[channel]['timeoutWords'].split(',');
-            split.forEach((userWord) => {
-                if (handleMessage) {
-                    banWords.forEach((banWord) => {
-                        if (handleMessage && userWord.toLowerCase() === banWord.toLowerCase()) {
-                            handleMessage = false;
-                            global.client.ban(channel, user.username, language[global.channels[channel]['language']]['restricted-word']);
-                        }
-                    });
-
-                    toWords.forEach((toWord) => {
-                        if (handleMessage && userWord.toLowerCase() === toWord.toLowerCase()) {
-                            handleMessage = false;
-                            global.client.timeout(channel, user.username, 60, language[global.channels[channel]['language']]['restricted-word']);
-                        }
-                    });
-                }
+            res.render('index.ejs', {
+                channel: channel,
+                channels: permissions
             });
+        } catch (error) {
+            functions.log('error', error);
+            res.render('error.ejs');
+        }
+    }
+});
 
-            if (handleMessage && (global.channels[channel]['subDomainCheck'] || global.channels[channel]['nonSubDomainCheck'])) {
-                var subAllowedDomains = global.channels[channel]['subAllowedDomains'].split(',');
-                var nonSubAllowedDomains = global.channels[channel]['nonSubAllowedDomains'].split(',');
-                var caughtWebsites = message.toLowerCase().match(/(https?:\/\/)?(([a-zA-Z0-9-]*)\.){0,}([a-zA-Z0-9-]{2,}\.)([a-zA-Z]{2,}).*?/g);
-                caughtWebsites === null || caughtWebsites.forEach((site) => {
-                    if (handleMessage) {
-                        site.indexOf('http://') !== 0 || (site = site.replace('http://', ''));
-                        site.indexOf('https://') !== 0 || (site = site.replace('https://', ''));
-                        site.indexOf('www.') !== 0 || (site = site.replace('www.', ''));
-                        
-                        var allowedDomain = false;
-                        if (userPermission === 1) {
-                            subAllowedDomains.forEach((domain) => {
-                                domain !== site || (allowedDomain = true);
-                            });
-                            allowedDomain || (handleMessage = false);
-                        } else {
-                            nonSubAllowedDomains.forEach((domain) => {
-                                domain !== site || (allowedDomain = true);
-                            });
-                            allowedDomain || (handleMessage = false);
-                        }
-                    }
+app.get('/login', (req, res) => {
+    res.render('checkLogin.ejs');
+});
+
+app.get('/logout', (req, res) => {
+    res.render('logout.ejs');
+});
+
+app.post('/api/addCommand/:channel', async (req, res) => {
+    req.params.channel = `#${req.params.channel}`;
+    var username = await api.checkLogin(req.cookies);
+    if (!username) {
+        res.render('login.ejs', {
+            clientID: config.serverSettings.clientID,
+            redirectUri: config.serverSettings.redirectUri
+        });
+    } else {
+        var permission = await api.checkPermissions({username: username, channel: req.params.channel});
+        if (permission) {
+            Number.isInteger(parseInt(req.body.cooldown)) || (req.body.cooldown = 0);
+            Number.isInteger(parseInt(req.body.permission)) || (req.body.permission = 0);
+            (req.body.content && req.body.content.trim()) || (req.body.content = 'Error');
+    
+            if (!req.body.name || !req.body.name.trim()) {
+                res.send({
+                    error: 'invalid-name',
+                    success: false
                 });
-
-                handleMessage || global.client.timeout(channel, user.username, 60, language[global.channels[channel]['language']]['restricted-domain']);
+            } else {
+                var response = await api.addCommand({
+                    channel: req.params.channel,
+                    content: req.body.content,
+                    cooldown: req.body.cooldown,
+                    name: req.body.name,
+                    permission: req.body.permission
+                });
+    
+                if (response.success) {
+                    channels[req.params.channel]['commands'][req.body.name] = response.response;
+                    res.send({
+                        data: response.response,
+                        success: true
+                    });
+                } else {
+                    res.send(response);
+                }
             }
+        } else {
+            res.render('error.ejs');
+        }
+    }
+});
+
+app.post('/api/editCommand/:channel', async (req, res) => {
+    req.params.channel = `#${req.params.channel}`;
+    var username = await api.checkLogin(req.cookies);
+    if (!username) {
+        res.render('login.ejs', {
+            clientID: config.serverSettings.clientID,
+            redirectUri: config.serverSettings.redirectUri
+        });
+    } else {
+        var permission = await api.checkPermissions({username: username, channel: req.params.channel});
+        if (permission) {
+            Number.isInteger(parseInt(req.body.cooldown)) || (req.body.cooldown = 0);
+            Number.isInteger(parseInt(req.body.permission)) || (req.body.permission = 0);
+            (req.body.content && req.body.content.trim()) || (req.body.content = 'Error');
+    
+            if (!req.body.name || !req.body.name.trim()) {
+                res.send({
+                    error: 'invalid-name',
+                    success: false
+                });
+            } else if (!req.body.id) {
+                res.send({
+                    error: 'an-error-occurred',
+                    success: false
+                });
+            } else {
+                var response = await api.editCommand({
+                    channel: req.params.channel,
+                    id: req.body.id
+                }, {
+                    content: req.body.content,
+                    cooldown: req.body.cooldown,
+                    name: req.body.name,
+                    permission: req.body.permission
+                });
+    
+                if (response.success) {
+                    delete channels[req.params.channel]['commands'][response.oldName];
+                    channels[req.params.channel]['commands'][req.body.name] = response.response;
+                    res.send({
+                        data: response.response,
+                        success: true
+                    });
+                } else {
+                    res.send(response);
+                }
+            }
+        } else {
+            res.render('error.ejs');
+        }
+    }
+});
+
+app.post('/api/removeCommand/:channel', async (req, res) => {
+    req.params.channel = `#${req.params.channel}`;
+    var username = await api.checkLogin(req.cookies);
+    if (!username) {
+        res.render('login.ejs', {
+            clientID: config.serverSettings.clientID,
+            redirectUri: config.serverSettings.redirectUri
+        });
+    } else {
+        var permission = await api.checkPermissions({username: username, channel: req.params.channel});
+        if (permission) {
+            if (!req.body.id) {
+                res.send({
+                    error: 'an-error-occurred',
+                    success: false
+                });
+            } else {
+                var response = await api.removeCommand({
+                    channel: req.params.channel,
+                    id: req.body.id
+                });
+    
+                if (response.success) {
+                    delete channels[req.params.channel]['commands'][response.oldName];
+                    res.send({
+                        data: response.response,
+                        success: true
+                    });
+                } else {
+                    res.send(response);
+                }
+            }
+        } else {
+            res.render('error.ejs');
+        }
+    }
+});
+
+app.post('/api/subMessages/:channel', async (req, res) => {
+    req.params.channel = `#${req.params.channel}`;
+    var username = await api.checkLogin(req.cookies);
+    if (!username) {
+        res.render('login.ejs', {
+            clientID: config.serverSettings.clientID,
+            redirectUri: config.serverSettings.redirectUri
+        });
+    } else {
+        var permission = await api.checkPermissions({username: username, channel: req.params.channel});
+        if (permission) {
+            req.body.subscriptionGift || (req.body.subscriptionGift = '');
+            req.body.subscription || (req.body.subscription = '');
+            req.body.resubscription || (req.body.resubscription = '');
+    
+            var response = await api.updateSubMessages({
+                channel: req.params.channel,
+                subscription: req.body.subscription,
+                subscriptionGift: req.body.subscriptionGift,
+                resubscription: req.body.resubscription,
+            });
+    
+            if (response.success) {
+                channels[req.params.channel]['subscription'] = req.body.subscription;
+                channels[req.params.channel]['subscriptionGift'] = req.body.subscriptionGift;
+                channels[req.params.channel]['resubscription'] = req.body.resubscription;
+                res.send({
+                    success: true
+                });
+            } else {
+                res.send(response);
+            }
+        } else {
+            res.render('error.ejs');
+        }
+    }
+});
+
+app.post('/api/addQuote/:channel', async (req, res) => {
+    req.params.channel = `#${req.params.channel}`;
+    var username = await api.checkLogin(req.cookies);
+    if (!username) {
+        res.render('login.ejs', {
+            clientID: config.serverSettings.clientID,
+            redirectUri: config.serverSettings.redirectUri
+        });
+    } else {
+        var permission = await api.checkPermissions({username: username, channel: req.params.channel});
+        if (permission) {
+            if (!req.body.quoteBy || !req.body.quoteBy.trim()) {
+                res.send({
+                    error: 'invalid-quote-owner',
+                    success: false
+                });
+            } else if (!req.body.content || !req.body.content.trim()) {
+                res.send({
+                    error: 'invalid-quote',
+                    success: false
+                });
+            } else {
+                var response = await api.addQuote({
+                    addedBy: username.replace('#', ''),
+                    channel: req.params.channel,
+                    content: api.quotify({
+                        content: req.body.content,
+                        quoteBy: req.body.quoteBy
+                    })
+                });
+    
+                if (response.success) {
+                    res.send({
+                        data: response.response,
+                        success: true
+                    });
+                } else {
+                    res.send(response);
+                }
+            }
+        } else {
+            res.render('error.ejs');            
+        }
+    }
+});
+
+app.post('/api/editQuote/:channel', async (req, res) => {
+    req.params.channel = `#${req.params.channel}`;
+    var username = await api.checkLogin(req.cookies);
+    if (!username) {
+        res.render('login.ejs', {
+            clientID: config.serverSettings.clientID,
+            redirectUri: config.serverSettings.redirectUri
+        });
+    } else {
+        var permission = await api.checkPermissions({username: username, channel: req.params.channel});
+        if (permission) {
+            if (!req.body.content || !req.body.content.trim()) {
+                res.send({
+                    error: 'invalid-quote',
+                    success: false
+                });
+            } else if (!req.body.id) {
+                res.send({
+                    error: 'an-error-occurred',
+                    success: false
+                });
+            } else {
+                var response = await api.editQuote({
+                    channel: req.params.channel,
+                    id: req.body.id
+                }, {
+                    content: req.body.content
+                });
+    
+                if (response.success) {
+                    res.send({
+                        data: response.response,
+                        success: true
+                    });
+                } else {
+                    res.send(response);
+                }
+            }
+        } else {
+            res.render('error.ejs');
+        }
+    }
+});
+
+app.post('/api/removeQuote/:channel', async (req, res) => {
+    req.params.channel = `#${req.params.channel}`;
+    var username = await api.checkLogin(req.cookies);
+    if (!username) {
+        res.render('login.ejs', {
+            clientID: config.serverSettings.clientID,
+            redirectUri: config.serverSettings.redirectUri
+        });
+    } else {
+        var permission = await api.checkPermissions({username: username, channel: req.params.channel});
+        if (permission) {
+            if (!req.body.id) {
+                res.send({
+                    error: 'an-error-occurred',
+                    success: false
+                });
+            } else {
+                var response = await api.removeQuote({
+                    channel: req.params.channel,
+                    id: req.body.id
+                });
+    
+                if (response.success) {
+                    res.send({
+                        data: response.response,
+                        success: true
+                    });
+                } else {
+                    res.send(response);
+                }
+            }
+        } else {
+            res.render('error.ejs');
         }
 
-        if (handleMessage && global.channels[channel]['commands'][split[0]] && !api.checkCooldown(user, global.channels[channel]['commands'][split[0]]) && api.getPrivilege(user) >= global.channels[channel]['commands'][split[0]].permission) {
-            var time = new Date().getTime();
-            api.getPrivilege(user) > 1 || (global.channels[channel]['commands'][split[0]].lastUsed = time);
+    }
+});
 
-            global.channels[channel]['commands'][split[0]].timesUsed++;
-            api.used(channel, split[0], global.channels[channel]['commands'][split[0]].timesUsed);
-
-            var response = await api.handleMessage(global.channels[channel]['commands'][split[0]], user, channel, split, global.channels[channel]['language']);
-            global.client.say(channel, response);
+app.post('/api/updateLanguage/:channel', async (req, res) => {
+    req.params.channel = `#${req.params.channel}`;
+    var username = await api.checkLogin(req.cookies);
+    if (!username) {
+        res.render('login.ejs', {
+            clientID: config.serverSettings.clientID,
+            redirectUri: config.serverSettings.redirectUri
+        });
+    } else {
+        var permission = await api.checkPermissions({username: username, channel: req.params.channel});
+        if (permission) {
+            if (!req.body.language || !languages[req.body.language]) {
+                res.send({
+                    error: 'an-error-occurred',
+                    success: false
+                });
+            } else {
+                var response = await api.updateLanguage({
+                    channel: req.params.channel,
+                    language: req.body.language
+                });
+    
+                if (response.success) {
+                    channels[req.params.channel].language = req.body.language;
+                    res.send({
+                        data: response.data,
+                        success: true
+                    });
+                } else {
+                    res.send(response);
+                }
+            }
+        } else {
+            res.render('error.ejs');
         }
-    });
-})();
+    }
+});
+
+app.post('/api/messageModeration/:channel', async (req, res) => {
+    req.params.channel = `#${req.params.channel}`;
+    var username = await api.checkLogin(req.cookies);
+    if (!username) {
+        res.render('login.ejs', {
+            clientID: config.serverSettings.clientID,
+            redirectUri: config.serverSettings.redirectUri
+        });
+    } else {
+        var permission = await api.checkPermissions({username: username, channel: req.params.channel});
+        if (permission) {
+            req.body.banWords || (req.body.banWords = '');
+            req.body.timeoutWords || (req.body.timeoutWords = '');
+    
+            var response = await api.updateMessageModeration({
+                banWords: req.body.banWords,
+                channel: req.params.channel,
+                timeoutWords: req.body.timeoutWords
+            });
+    
+            if (response.success) {
+                channels[req.params.channel].banWords = req.body.banWords;
+                channels[req.params.channel].timeoutWords = req.body.timeoutWords;
+                res.send({
+                    success: true
+                });
+            } else {
+                res.send(response);
+            }
+        } else {
+            res.render('error.ejs');
+        }
+    }
+});
+
+app.post('/api/linkModeration/:channel', async (req, res) => {
+    req.params.channel = `#${req.params.channel}`;
+    var username = await api.checkLogin(req.cookies);
+    if (!username) {
+        res.render('login.ejs', {
+            clientID: config.serverSettings.clientID,
+            redirectUri: config.serverSettings.redirectUri
+        });
+    } else {
+        var permission = await api.checkPermissions({username: username, channel: req.params.channel});
+        if (permission) {
+            if (!req.body.nonSubAllowedDomains) {
+                req.body.nonSubDomainCheck = false;
+                req.body.nonSubAllowedDomains = '';
+            } else {
+                req.body.nonSubDomainCheck = true;
+            }
+    
+            if (!req.body.subAllowedDomains) {
+                req.body.subDomainCheck = false;
+                req.body.subAllowedDomains = '';
+            } else {
+                req.body.subDomainCheck = true;
+            }
+    
+            var response = await api.updateLinkModeration({
+                channel: req.params.channel,
+                nonSubDomainCheck: req.body.nonSubDomainCheck,
+                nonSubAllowedDomains: req.body.nonSubAllowedDomains,
+                subDomainCheck: req.body.subDomainCheck,
+                subAllowedDomains: req.body.subAllowedDomains
+            });
+    
+            if (response.success) {
+                channels[req.params.channel].nonSubDomainCheck = req.body.nonSubDomainCheck;
+                channels[req.params.channel].nonSubAllowedDomains = req.body.nonSubAllowedDomains;
+                channels[req.params.channel].subDomainCheck = req.body.subDomainCheck;
+                channels[req.params.channel].subAllowedDomains = req.body.subAllowedDomains;
+                
+                res.send({
+                    success: true
+                });
+            } else {
+                res.send(response);
+            }
+        } else {
+            res.render('error.ejs');
+        }
+    }
+});
+
+app.post('/api/updateBotEditors/:channel', async (req, res) => {
+    req.params.channel = `#${req.params.channel}`;
+    var username = await api.checkLogin(req.cookies);
+    if (!username) {
+        res.render('login.ejs', {
+            clientID: config.serverSettings.clientID,
+            redirectUri: config.serverSettings.redirectUri
+        });
+    } else {
+        if (username === req.params.channel) {
+            req.body.botEditors || (req.body.botEditors = '');
+    
+            var response = await api.updateBotEditors({
+                botEditors: req.body.botEditors.toLowerCase(),
+                channel: req.params.channel
+            });
+    
+            if (response.success) {
+                res.send({
+                    success: true
+                });
+            } else {
+                res.send(response);
+            }
+        } else {
+            res.render('error.ejs');
+        }
+    }
+});
+
+app.get('/:channel', async (req, res) => {
+    req.params.channel = `#${req.params.channel}`;
+    var username = await api.checkLogin(req.cookies);
+    if (!username) {
+        res.render('login.ejs', {
+            clientID: config.serverSettings.clientID,
+            redirectUri: config.serverSettings.redirectUri
+        });
+    } else {
+        var permission = await api.checkPermissions({username: username, channel: req.params.channel});
+        if (permission) {
+            try {
+                var channel = await api.getChannels(req.params.channel);
+                var commands = await api.getCommands(req.params.channel);
+                var quotes = await api.getQuotes(req.params.channel);
+    
+                res.render('manage.ejs', {
+                    channel: channel,
+                    commands: commands,
+                    username: username,
+                    quotes: quotes
+                });
+            } catch (error) {
+                functions.log('error', error);
+                res.render('error.ejs');
+            }
+        } else {
+            res.render('error.ejs');
+        }
+    }
+});
+
+app.listen(config.serverSettings.port);
+functions.log('info', `Server started running on port ${config.serverSettings.port}`);
