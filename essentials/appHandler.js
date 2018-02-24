@@ -683,6 +683,5 @@ app.get('/:channel', async (req, res) => {
     }
 });
 
-//app.use(subdomain('bot', router));
 app.listen(config.serverSettings.port);
 functions.log('info', `Server started running on port ${config.serverSettings.port}`);
