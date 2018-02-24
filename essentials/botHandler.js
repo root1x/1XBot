@@ -13,6 +13,7 @@ global.channels = {};
     dbChannels.forEach((channel) => {
         global.channels[channel.name] = channel;
         global.channels[channel.name]['commands'] = {};
+        global.channels[channel.name]['regexes'] = [];
         config.botSettings.channels.push(channel.name);
     });
 
@@ -21,6 +22,11 @@ global.channels = {};
     var dbCommands = await api.getCommands();
     dbCommands.forEach((command) => {
         global.channels[command.channel]['commands'][command.name] = command;
+    });
+
+    var dbRegexes = await api.getRegexes();
+    dbRegexes.forEach((regex) => {
+        global.channels[regex.channel]['regexes'].push(regex);
     });
 
     functions.log('info', 'Loaded command list');
@@ -43,6 +49,7 @@ global.channels = {};
     global.client.on('chat', async (channel, user, message, self) => {
         if (self) return;
 
+        var containsRegex = false;
         var handleMessage = true;
         var split = message.split(' ');
         var userPermission = api.getPrivilege(user);
@@ -97,15 +104,36 @@ global.channels = {};
             }
         }
 
-        if (handleMessage && global.channels[channel]['commands'][split[0]] && !api.checkCooldown(user, global.channels[channel]['commands'][split[0]]) && api.getPrivilege(user) >= global.channels[channel]['commands'][split[0]].permission) {
-            var time = new Date().getTime();
-            api.getPrivilege(user) > 1 || (global.channels[channel]['commands'][split[0]].lastUsed = time);
+        if (handleMessage) {
+            var keepGoing = true;
+            global.channels[channel]['regexes'].forEach((regex, key) => {
+                if (keepGoing) {
+                    var regexp = new RegExp(regex.regex);
+                    if (regexp.test(message)) {
+                        keepGoing = false;
+                        containsRegex = `${key}`;
+                    }
+                }
+            });
+        }
 
-            global.channels[channel]['commands'][split[0]].timesUsed++;
-            api.used(channel, split[0], global.channels[channel]['commands'][split[0]].timesUsed);
+        if (handleMessage && ((containsRegex  && !api.checkCooldown(user, global.channels[channel]['regexes'][containsRegex]) && api.getPrivilege(user) >= global.channels[channel]['regexes'][containsRegex].permission) || (global.channels[channel]['commands'][split[0]] && !api.checkCooldown(user, global.channels[channel]['commands'][split[0]]) && api.getPrivilege(user) >= global.channels[channel]['commands'][split[0]].permission))) {
+            if (String(containsRegex) == 'false') {
+                var time = new Date().getTime();
+                api.getPrivilege(user) > 1 || (global.channels[channel]['commands'][split[0]].lastUsed = time);
 
-            var response = await api.handleMessage(global.channels[channel]['commands'][split[0]], user, channel, split, global.channels[channel]['language']);
-            global.client.say(channel, response);
+                global.channels[channel]['commands'][split[0]].timesUsed++;
+                api.used(channel, split[0], global.channels[channel]['commands'][split[0]].timesUsed);
+
+                var response = await api.handleMessage(global.channels[channel]['commands'][split[0]], user, channel, split, global.channels[channel]['language']);
+                global.client.say(channel, response);
+            } else {
+                var time = new Date().getTime();
+                api.getPrivilege(user) > 1 || (global.channels[channel]['regexes'][containsRegex].lastUsed = time);
+
+                var response = await api.handleMessage(global.channels[channel]['regexes'][containsRegex], user, channel, split, global.channels[channel]['language']);
+                global.client.say(channel, response);
+            }
         }
     });
 })();

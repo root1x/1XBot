@@ -77,8 +77,23 @@ const quotes = mongoose.model('quotes', new mongoose.Schema({
     content: String
 }));
 
+const regexes = mongoose.model('regexes', new mongoose.Schema({
+    channel: String,
+    cooldown: {
+        default: 0,
+        type: Number
+    },
+    permission: {
+        default: 0,
+        type: Number
+    },
+    regex: String,
+    response: String
+}));
+
 module.exports = {
     channels,
     commands,
-    quotes
+    quotes,
+    regexes
 };

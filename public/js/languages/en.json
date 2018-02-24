@@ -6,6 +6,7 @@
     "quotes": "Quotes",
     "chat-moderation": "Chat Moderation",
     "message-moderation": "Message Moderation",
+    "regex-moderation": "RegEx Moderation",
     "link-moderation": "Link Moderation",
     "bot-editors": "Bot Editors",
     "select-language": "Language",
@@ -17,6 +18,9 @@
     "command-output": "Command Output",
     "added-by": "Added By",
     "quote-content": "Quote",
+    "regex-expression": "Regular Expression",
+    "regex-output": "Message Output",
+    "regex-cooldown": "RegEx Cooldown",
     "datetime": "Date & Time",
     "command-cooldown": "Command Cooldown",
     "permissions": "Permissions",
@@ -46,6 +50,7 @@
 
     "command-exists": "This command exists",
     "invalid-name": "Invalid command name",
+    "invalid-regex": "Invalid RegEx",
 
     "sorry": "Sorry!",
     "reminder": "Reminder:",

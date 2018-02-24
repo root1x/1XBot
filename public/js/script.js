@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     $(document).on('click', '[data-modal]', function () {
-        if ($(this).attr('data-modal') === '#addCommand' || $(this).attr('data-modal') === '#addQuote') {
+        if ($(this).attr('data-modal') === '#addCommand' || $(this).attr('data-modal') === '#addQuote' || $(this).attr('data-modal') === '#addRegex') {
             $(`${$(this).attr('data-modal')} input`).val('');
             $(`${$(this).attr('data-modal')} textarea`).val('');
             $(`${$(this).attr('data-modal')} select`).val(3).change();
@@ -72,6 +72,20 @@ document.addEventListener('DOMContentLoaded', function () {
         $('#removeQuote #quoteID').val(quoteInfo['_id']);
     });
 
+    $(document).on('click', '[data-modal="#editRegex"]', function () {
+        var regexInfo = JSON.parse($(this).parent().parent().parent().attr('data-regex-info'));
+        $('#editRegex #regexID').val(regexInfo['_id']);
+        $('#editRegex textarea[data-tag="regex-expression"]').val(regexInfo['regex']);
+        $('#editRegex textarea[data-tag="regex-output"]').val(regexInfo['response']);
+        $('#editRegex input[data-tag="regex-cooldown"]').val(regexInfo['cooldown']);
+        $('#editRegex select').val(regexInfo['permission']).change();
+    });
+
+    $(document).on('click', '[data-modal="#removeRegex"]', function () {
+        var regexInfo = JSON.parse($(this).parent().parent().parent().attr('data-regex-info'));
+        $('#removeRegex #regexID').val(regexInfo['_id']);
+    });
+
     $(document).on('click', '[data-language]', function () {
         var language = $(this).attr('data-language');
         $.post(`/api/updateLanguage/${currentChannel}`, {
@@ -106,6 +120,14 @@ document.addEventListener('DOMContentLoaded', function () {
                     $(`tr[data-quote-id="${response.data._id}"] .content`).text(`${response.data.content}`);
                 } else if (targetFormName === '#removeQuoteForm') {
                     $(`tr[data-quote-id="${response.data._id}"]`).remove();
+                } else if (targetFormName === '#addRegexForm') {
+                    $('#regexModeration .table tbody').append(`<tr data-regex-id="${response.data._id}" data-regex-info="${JSON.stringify(response.data).split('"').join('&quot;')}"><td class="name">${response.data.regex}</td><td class="content">${response.data.response}</td><td class="actions"><p class="field"><a class="button is-small" data-modal="#editRegex"><span class="icon is-small"><i class="fas fa-pencil-alt"></i></span></a> <a class="button is-small" data-modal="#removeRegex"><span class="icon is-small"><i class="fas fa-trash-alt"></i></span></a></p></td></tr>`);
+                } else if (targetFormName === '#editRegexForm') {
+                    $(`tr[data-regex-id="${response.data._id}"]`).attr('data-regex-info', JSON.stringify(response.data));
+                    $(`tr[data-regex-id="${response.data._id}"] .name`).text(`${response.data.regex}`);
+                    $(`tr[data-regex-id="${response.data._id}"] .content`).text(`${response.data.response}`);
+                } else if (targetFormName === '#removeRegexForm') {
+                    $(`tr[data-regex-id="${response.data._id}"]`).remove();
                 }
              } else {
                 $(`${targetFormName} p[data-tag="${response.error}"]`).removeClass('is-hidden');

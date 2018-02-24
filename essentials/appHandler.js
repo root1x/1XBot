@@ -351,6 +351,150 @@ app.post('/api/removeQuote/:channel', async (req, res) => {
     }
 });
 
+app.post('/api/addRegex/:channel', async (req, res) => {
+    req.params.channel = `#${req.params.channel}`;
+    var username = await api.checkLogin(req.cookies);
+    if (!username) {
+        res.render('login.ejs', {
+            clientID: config.serverSettings.clientID,
+            redirectUri: config.serverSettings.redirectUri
+        });
+    } else {
+        var permission = await api.checkPermissions({username: username, channel: req.params.channel});
+        if (permission) {
+            Number.isInteger(parseInt(req.body.cooldown)) || (req.body.cooldown = 0);
+            Number.isInteger(parseInt(req.body.permission)) || (req.body.permission = 0);
+            (req.body.content && req.body.content.trim()) || (req.body.content = 'Error');
+    
+            if (!req.body.regex || !req.body.regex.trim()) {
+                res.send({
+                    error: 'invalid-regex',
+                    success: false
+                });
+            } else {
+                var response = await api.addRegex({
+                    channel: req.params.channel,
+                    cooldown: req.body.cooldown,
+                    permission: req.body.permission,
+                    regex: req.body.regex,
+                    response: req.body.content
+                });
+    
+                if (response.success) {
+                    channels[req.params.channel]['regexes'].push(response.response);
+                    res.send({
+                        data: response.response,
+                        success: true
+                    });
+                } else {
+                    res.send(response);
+                }
+            }
+        } else {
+            res.render('error.ejs');
+        }
+    }
+});
+
+app.post('/api/editRegex/:channel', async (req, res) => {
+    req.params.channel = `#${req.params.channel}`;
+    var username = await api.checkLogin(req.cookies);
+    if (!username) {
+        res.render('login.ejs', {
+            clientID: config.serverSettings.clientID,
+            redirectUri: config.serverSettings.redirectUri
+        });
+    } else {
+        var permission = await api.checkPermissions({username: username, channel: req.params.channel});
+        if (permission) {
+            Number.isInteger(parseInt(req.body.cooldown)) || (req.body.cooldown = 0);
+            Number.isInteger(parseInt(req.body.permission)) || (req.body.permission = 0);
+            (req.body.response && req.body.response.trim()) || (req.body.response = 'Error');
+    
+            if (!req.body.regex || !req.body.regex.trim()) {
+                res.send({
+                    error: 'invalid-regex',
+                    success: false
+                });
+            } else if (!req.body.id) {
+                res.send({
+                    error: 'an-error-occurred',
+                    success: false
+                });
+            } else {
+                var response = await api.editRegex({
+                    channel: req.params.channel,
+                    id: req.body.id
+                }, {
+                    cooldown: req.body.cooldown,
+                    permission: req.body.permission,
+                    regex: req.body.regex,
+                    response: req.body.response
+                });
+    
+                if (response.success) {
+                    channels[req.params.channel]['regexes'].forEach((regex, key) => {
+                        if (regex._id == req.body.id) {
+                            channels[req.params.channel]['regexes'].splice(key, 1);
+                        }
+                    });
+                    channels[req.params.channel]['regexes'].push(response.response);
+                    res.send({
+                        data: response.response,
+                        success: true
+                    });
+                } else {
+                    res.send(response);
+                }
+            }
+        } else {
+            res.render('error.ejs');
+        }
+    }
+});
+
+app.post('/api/removeRegex/:channel', async (req, res) => {
+    req.params.channel = `#${req.params.channel}`;
+    var username = await api.checkLogin(req.cookies);
+    if (!username) {
+        res.render('login.ejs', {
+            clientID: config.serverSettings.clientID,
+            redirectUri: config.serverSettings.redirectUri
+        });
+    } else {
+        var permission = await api.checkPermissions({username: username, channel: req.params.channel});
+        if (permission) {
+            if (!req.body.id) {
+                res.send({
+                    error: 'an-error-occurred',
+                    success: false
+                });
+            } else {
+                var response = await api.removeRegex({
+                    channel: req.params.channel,
+                    id: req.body.id
+                });
+    
+                if (response.success) {
+                    channels[req.params.channel]['regexes'].forEach((regex, key) => {
+                        if (regex._id == req.body.id) {
+                            channels[req.params.channel]['regexes'].splice(key, 1);
+                        }
+                    });
+                    res.send({
+                        data: response.response,
+                        success: true
+                    });
+                } else {
+                    res.send(response);
+                }
+            }
+        } else {
+            res.render('error.ejs');
+        }
+    }
+});
+
 app.post('/api/updateLanguage/:channel', async (req, res) => {
     req.params.channel = `#${req.params.channel}`;
     var username = await api.checkLogin(req.cookies);
@@ -520,12 +664,14 @@ app.get('/:channel', async (req, res) => {
                 var channel = await api.getChannels(req.params.channel);
                 var commands = await api.getCommands(req.params.channel);
                 var quotes = await api.getQuotes(req.params.channel);
+                var regexes = await api.getRegexes(req.params.channel);
     
                 res.render('manage.ejs', {
                     channel: channel,
                     commands: commands,
                     username: username,
-                    quotes: quotes
+                    quotes: quotes,
+                    regexes: regexes
                 });
             } catch (error) {
                 functions.log('error', error);
@@ -537,5 +683,6 @@ app.get('/:channel', async (req, res) => {
     }
 });
 
+//app.use(subdomain('bot', router));
 app.listen(config.serverSettings.port);
 functions.log('info', `Server started running on port ${config.serverSettings.port}`);

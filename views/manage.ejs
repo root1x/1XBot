@@ -28,7 +28,9 @@
                 <a class="navbar-item" data-tag="sub-messages" data-modal="#subMessages"></a>
                 <a class="navbar-item" data-tag="quotes" data-modal="#quotes"></a>
                 <a class="navbar-item" data-tag="chat-moderation" data-modal="#chatModeration"></a>
-                <% if (channel.name === username) { %><a class="navbar-item" data-tag="bot-editors" data-modal="#botEditors"></a><% } %>
+                <% if (channel.name === username) { %>
+                    <a class="navbar-item" data-tag="bot-editors" data-modal="#botEditors"></a>
+                    <% } %>
             </div>
 
             <div class="navbar-end">
@@ -413,20 +415,21 @@
     </div>
 
     <div id="chatModeration" class="modal hidden">
-            <div class="modal-background"></div>
-            <div class="modal-card">
-                <header class="modal-card-head">
-                    <p class="modal-card-title" data-tag="chat-moderation"></p>
-                    <button class="delete" aria-label="close"></button>
-                </header>
-                <section class="modal-card-body">
-                    <div class="is-centered">
-                        <button class="button is-dark" data-modal="#messageModeration" data-tag="message-moderation"></button>
-                        <button class="button is-dark" data-modal="#linkModeration" data-tag="link-moderation"></button>
-                    </div>
-                </section>
-            </div>
+        <div class="modal-background"></div>
+        <div class="modal-card">
+            <header class="modal-card-head">
+                <p class="modal-card-title" data-tag="chat-moderation"></p>
+                <button class="delete" aria-label="close"></button>
+            </header>
+            <section class="modal-card-body">
+                <div class="is-centered">
+                    <button class="button is-dark" data-modal="#messageModeration" data-tag="message-moderation"></button>
+                    <button class="button is-dark" data-modal="#regexModeration" data-tag="regex-moderation"></button>
+                    <button class="button is-dark" data-modal="#linkModeration" data-tag="link-moderation"></button>
+                </div>
+            </section>
         </div>
+    </div>
 
     <div id="messageModeration" class="modal hidden">
         <div class="modal-background"></div>
@@ -458,6 +461,174 @@
         </div>
     </div>
 
+    <div id="regexModeration" class="modal hidden">
+        <div class="modal-background"></div>
+        <div class="modal-card">
+            <header class="modal-card-head">
+                <p class="modal-card-title" data-tag="regex-moderation"></p>
+                <button class="delete" aria-label="close"></button>
+            </header>
+            <section class="modal-card-body">
+                <table class="table is-bordered is-striped is-narrow is-hoverable is-fullwidth">
+                    <thead>
+                        <tr>
+                            <th data-tag="regex-expression"></th>
+                            <th data-tag="regex-output"></th>
+                            <th data-tag="actions"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% regexes.forEach(function (regex) {%>
+                            <tr data-regex-id="<%= regex._id; %>" data-regex-info="<%= JSON.stringify(regex); %>">
+                                <td class="name">
+                                    <%= regex.regex; %>
+                                </td>
+                                <td class="content">
+                                    <%= regex.response; %>
+                                </td>
+                                <td class="actions">
+                                    <p class="field">
+                                        <a class="button is-small" data-modal="#editRegex">
+                                            <span class="icon is-small">
+                                                <i class="fas fa-pencil-alt"></i>
+                                            </span>
+                                        </a>
+                                        <a class="button is-small" data-modal="#removeRegex">
+                                            <span class="icon is-small">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </span>
+                                        </a>
+                                    </p>
+                                </td>
+                            </tr>
+                            <% }, this); %>
+                    </tbody>
+                </table>
+            </section>
+            <footer class="modal-card-foot">
+                <button class="button is-dark" data-tag="add-new-regex" data-modal="#addRegex"></button>
+            </footer>
+        </div>
+    </div>
+
+    <div id="addRegex" class="modal hidden">
+        <div class="modal-background"></div>
+        <div class="modal-card">
+            <header class="modal-card-head">
+                <p class="modal-card-title" data-tag="add-new-regex"></p>
+                <button class="delete" aria-label="close"></button>
+            </header>
+            <form id="addRegexForm" action="api/addRegex" method="post">
+                <section class="modal-card-body">
+                    <div class="field">
+                        <label class="label" data-tag="regex-expression"></label>
+                        <div class="control">
+                            <textarea class="textarea" name="regex" data-tag="regex-expression"></textarea>
+                            <p class="help is-danger is-hidden" data-tag="invalid-regex"></p>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label class="label" data-tag="regex-output"></label>
+                        <div class="control">
+                            <textarea class="textarea" name="content" data-tag="regex-output"></textarea>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label class="label" data-tag="regex-cooldown"></label>
+                        <div class="control">
+                            <input class="input" name="cooldown" type="text" data-tag="regex-cooldown">
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label class="label" data-tag="permissions"></label>
+                        <div class="control">
+                            <div class="select">
+                                <select name="permission">
+                                    <option value="3" data-tag="broadcaster-only"></option>
+                                    <option value="2" data-tag="moderator-only"></option>
+                                    <option value="1" data-tag="sub-only"></option>
+                                    <option value="0" data-tag="everyone"></option>
+                                </select>
+                            </div>
+                        </div>
+                        <p class="help is-danger is-hidden" data-tag="an-error-occurred"></p>
+                    </div>
+                </section>
+            </form>
+            <footer class="modal-card-foot">
+                <button class="button is-dark" data-submit="#addRegexForm" data-tag="add-new-regex"></button>
+            </footer>
+        </div>
+    </div>
+
+    <div id="editRegex" class="modal hidden">
+        <div class="modal-background"></div>
+        <div class="modal-card">
+            <header class="modal-card-head">
+                <p class="modal-card-title" data-tag="edit-regex"></p>
+                <button class="delete" aria-label="close"></button>
+            </header>
+            <form id="editRegexForm" action="api/editRegex" method="post">
+                <section class="modal-card-body">
+                    <input type="hidden" name="id" id="regexID">
+                    <div class="field">
+                        <label class="label" data-tag="regex-expression"></label>
+                        <div class="control">
+                            <textarea class="textarea" name="regex" data-tag="regex-expression"></textarea>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label class="label" data-tag="regex-output"></label>
+                        <div class="control">
+                            <textarea class="textarea" name="response" data-tag="regex-output"></textarea>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label class="label" data-tag="regex-cooldown"></label>
+                        <div class="control">
+                            <input class="input" name="cooldown" type="text" data-tag="regex-cooldown">
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label class="label" data-tag="permissions"></label>
+                        <div class="control">
+                            <div class="select">
+                                <select name="permission">
+                                    <option value="3" data-tag="broadcaster-only"></option>
+                                    <option value="2" data-tag="moderator-only"></option>
+                                    <option value="1" data-tag="sub-only"></option>
+                                    <option value="0" data-tag="everyone"></option>
+                                </select>
+                            </div>
+                        </div>
+                        <p class="help is-danger is-hidden" data-tag="an-error-occurred"></p>
+                    </div>
+                </section>
+            </form>
+            <footer class="modal-card-foot">
+                <button class="button is-dark" data-submit="#editRegexForm" data-tag="edit-regex"></button>
+            </footer>
+        </div>
+    </div>
+
+    <div id="removeRegex" class="modal hidden">
+        <div class="modal-background"></div>
+        <div class="modal-card">
+            <header class="modal-card-head">
+                <p class="modal-card-title" data-tag="remove-regex"></p>
+                <button class="delete" aria-label="close"></button>
+            </header>
+            <form id="removeRegexForm" action="api/removeRegex" method="post">
+                <input type="hidden" name="id" id="regexID">
+            </form>
+            <section class="modal-card-body" data-tag="are-you-sure"></section>
+            <footer class="modal-card-foot">
+                <button class="button is-dark" data-submit="#removeRegexForm" data-tag="yes"></button>
+                <button class="button" data-tag="no"></button>
+            </footer>
+        </div>
+    </div>
+
     <div id="linkModeration" class="modal hidden">
         <div class="modal-background"></div>
         <div class="modal-card">
@@ -480,28 +651,29 @@
                     <div id="nonSubViewer" data-tab-category="linkModeration">
                         <div class="field">
                             <label class="checkbox">
-                                <input type="checkbox" data-toggle="#nonSubAllowedDomains"<% if (!channel.nonSubDomainCheck) {%> checked<% } %>>
-                                <label data-tag="allow-links"></label>
+                                <input type="checkbox" data-toggle="#nonSubAllowedDomains" <% if (!channel.nonSubDomainCheck) {%> checked
+                                <% } %>>
+                                    <label data-tag="allow-links"></label>
                             </label>
                         </div>
                         <div class="field">
                             <label class="label" data-tag="allowed-domains"></label>
                             <div class="control">
-                                <textarea class="textarea" name="nonSubAllowedDomains" id="nonSubAllowedDomains" data-tag="allowed-domains"<% if (!channel.nonSubDomainCheck) {%> disabled<% }%>><%= channel.nonSubAllowedDomains; %></textarea>
+                                <textarea class="textarea" name="nonSubAllowedDomains" id="nonSubAllowedDomains" data-tag="allowed-domains" <% if (!channel.nonSubDomainCheck){%> disabled<% }%>><%= channel.nonSubAllowedDomains; %></textarea>
                             </div>
                         </div>
                     </div>
                     <div id="subViewer" data-tab-category="linkModeration" class="is-hidden">
                         <div class="field">
                             <label class="checkbox">
-                                <input type="checkbox" data-toggle="#subAllowedDomains"<% if (!channel.subDomainCheck) {%> checked<% } %>>
+                                <input type="checkbox" data-toggle="#subAllowedDomains" <% if (!channel.subDomainCheck) {%> checked<% } %>>
                                 <label data-tag="allow-links"></label>
                             </label>
                         </div>
                         <div class="field">
                             <label class="label" data-tag="allowed-domains"></label>
                             <div class="control">
-                                <textarea class="textarea" name="subAllowedDomains" id="subAllowedDomains" data-tag="allowed-domains"<% if (!channel.subDomainCheck) {%> disabled<% }%>><%= channel.subAllowedDomains; %></textarea>
+                                <textarea class="textarea" name="subAllowedDomains" id="subAllowedDomains" data-tag="allowed-domains" <% if (!channel.subDomainCheck){%> disabled<% }%>><%= channel.subAllowedDomains; %></textarea>
                             </div>
                         </div>
                     </div>
@@ -537,7 +709,9 @@
         </div>
     </div>
 
-    <script>var currentChannel = "<%=channel.name.replace('#', '');%>";</script>
+    <script>
+        var currentChannel = "<%=channel.name.replace('#', '');%>";
+    </script>
     <script src="https://use.fontawesome.com/releases/v5.0.0/js/all.js"></script>
     <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
     <script src="js/script.js"></script>

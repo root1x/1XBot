@@ -58,6 +58,26 @@ function addQuote(data) {
     });
 }
 
+function addRegex(data) {
+    return new Promise((resolve, reject) => {
+        schemas.regexes.find({
+            channel: data.channel
+        }, (error, response) => {
+            new schemas.regexes(data).save((error, response) => {
+                if (error)
+                    resolve({
+                        error: 'an-error-occurred',
+                        success: false
+                    });
+                resolve({
+                    success: true,
+                    response: response
+                });
+            });
+        })
+    });
+}
+
 function checkCooldown(user, command) {
     if (getPrivilege(user) > 1)
         return false;
@@ -104,6 +124,7 @@ function checkLogin(cookies) {
                         }).save((error, response) => {
                             global.channels[channel] = response;
                             global.channels[channel]['commands'] = {};
+                            global.channels[channel]['regexes'] = [];
         
                             global.client.join(channel.replace('#', ''));
         
@@ -177,6 +198,38 @@ function editQuote(data, newData) {
             } else
                 resolve({
                     error: 'an-error-occurred',
+                    success: false
+                });
+        });
+    });
+}
+
+function editRegex(data, newData) {
+    return new Promise((resolve, reject) => {
+        schemas.regexes.find({
+            channel: data.channel,
+            _id: new mongoose.Types.ObjectId(data.id)
+        }, (error, response) => {
+            if (response.length > 0) {
+                schemas.regexes.findOneAndUpdate({
+                    _id: new mongoose.Types.ObjectId(data.id)
+                }, newData, {
+                    new: true
+                }, (error, response) => {
+                    if (error)
+                        resolve({
+                            error: 'an-error-occurred',
+                            success: false
+                        });
+
+                    resolve({
+                        response: response,
+                        success: true
+                    });
+                });
+            } else
+                resolve({
+                    error: 'regex-not-found',
                     success: false
                 });
         });
@@ -273,12 +326,25 @@ function getQuotes(channel) {
     });
 }
 
+function getRegexes(channel) {
+    return new Promise((resolve, reject) => {
+        schemas.regexes.find((channel ? {
+            'channel': channel
+        } : {}), (error, response) => {
+            if (error)
+                reject(error);
+
+            resolve(response);
+        });
+    });
+}
+
 function quotify(data) {
     return `"${data.content}" - ${data.quoteBy}, ${dateTime.create().format('d/m/Y - H:M:S')}`;
 }
 
 async function handleMessage(command, user, channel, split, language) {
-    var content = command.content;
+    var content = command.content ? command.content : command.response;
     if (content.indexOf('%username%') !== -1)
         content = content.split('%username%').join(user.username);
 
@@ -485,6 +551,36 @@ function removeQuote(data) {
     });
 }
 
+function removeRegex(data) {
+    return new Promise((resolve, reject) => {
+        schemas.regexes.find({
+            channel: data.channel,
+            _id: new mongoose.Types.ObjectId(data.id)
+        }, (error, response) => {
+            if (response.length > 0) {
+                schemas.regexes.findOneAndRemove({
+                    _id: new mongoose.Types.ObjectId(data.id)
+                }, (error, response) => {
+                    if (error)
+                        resolve({
+                            error: 'an-error-occurred',
+                            success: false
+                        });
+
+                    resolve({
+                        response: response,
+                        success: true
+                    });
+                });
+            } else
+                resolve({
+                    error: 'an-error-occurred',
+                    success: false
+                });
+        });
+    });
+}
+
 function updateBotEditors(data) {
     return new Promise((resolve, reject) => {
         schemas.channels.findOneAndUpdate({
@@ -611,20 +707,24 @@ function used(channel, command, timesUsed) {
 module.exports = {
     addCommand,
     addQuote,
+    addRegex,
     checkCooldown,
     checkLogin,
     checkPermissions,
     editCommand,
     editQuote,
+    editRegex,
     getChannels,
     getCommands,
     getPermissions,
     getPrivilege,
     getQuotes,
+    getRegexes,
     handleMessage,
     quotify,
     removeCommand,
     removeQuote,
+    removeRegex,
     updateBotEditors,
     updateLanguage,
     updateLinkModeration,
