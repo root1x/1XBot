@@ -84,7 +84,7 @@ global.channels = {};
                         site.indexOf('http://') !== 0 || (site = site.replace('http://', ''));
                         site.indexOf('https://') !== 0 || (site = site.replace('https://', ''));
                         site.indexOf('www.') !== 0 || (site = site.replace('www.', ''));
-                        
+
                         var allowedDomain = false;
                         if (userPermission === 1) {
                             subAllowedDomains.forEach((domain) => {
@@ -108,8 +108,8 @@ global.channels = {};
             var keepGoing = true;
             global.channels[channel]['regexes'].forEach((regex, key) => {
                 if (keepGoing) {
-                    var regexp = new RegExp(regex.regex);
-                    if (regexp.test(message)) {
+                    var regexp = functions.regexpify(regex.regex);
+                    if (regexp !== null && regexp.test(message)) {
                         keepGoing = false;
                         containsRegex = `${key}`;
                     }
@@ -117,7 +117,7 @@ global.channels = {};
             });
         }
 
-        if (handleMessage && ((containsRegex  && !api.checkCooldown(user, global.channels[channel]['regexes'][containsRegex]) && api.getPrivilege(user) >= global.channels[channel]['regexes'][containsRegex].permission) || (global.channels[channel]['commands'][split[0]] && !api.checkCooldown(user, global.channels[channel]['commands'][split[0]]) && api.getPrivilege(user) >= global.channels[channel]['commands'][split[0]].permission))) {
+        if (handleMessage && ((containsRegex && !api.checkCooldown(user, global.channels[channel]['regexes'][containsRegex]) && api.getPrivilege(user) >= global.channels[channel]['regexes'][containsRegex].permission) || (global.channels[channel]['commands'][split[0]] && !api.checkCooldown(user, global.channels[channel]['commands'][split[0]]) && api.getPrivilege(user) >= global.channels[channel]['commands'][split[0]].permission))) {
             if (String(containsRegex) == 'false') {
                 var time = new Date().getTime();
                 api.getPrivilege(user) > 1 || (global.channels[channel]['commands'][split[0]].lastUsed = time);
