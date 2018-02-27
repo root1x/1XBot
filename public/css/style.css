@@ -11,6 +11,10 @@ html {
     justify-content: flex-end
 }
 
+.modal-card-body .is-centered {
+    line-height: 40px
+}
+
 .table {
     margin-bottom: 0
 }
@@ -41,7 +45,7 @@ th, td {
     animation: hideModal 0.2s both
 }
 
-@-webkit-keyframes showModal {
+@keyframes showModal {
     0% {
         opacity: 0
     }
@@ -50,11 +54,17 @@ th, td {
     }
 }
 
-@-webkit-keyframes hideModal {
+@keyframes hideModal {
     0% {
         opacity: 1
     }
     100% {
         opacity: 0
+    }
+}
+
+@media screen and (min-width: 769px) {
+    .modal-card, .modal-content {
+        width: 960px
     }
 }

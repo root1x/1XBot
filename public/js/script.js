@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     $(document).on('click', '[data-modal]', function () {
-        if ($(this).attr('data-modal') === '#addCommand' || $(this).attr('data-modal') === '#addQuote' || $(this).attr('data-modal') === '#addRegex') {
+        if ($(this).attr('data-modal') === '#addCommand' || $(this).attr('data-modal') === '#addMessage' || $(this).attr('data-modal') === '#addQuote' || $(this).attr('data-modal') === '#addRegex') {
             $(`${$(this).attr('data-modal')} input`).val('');
             $(`${$(this).attr('data-modal')} textarea`).val('');
             $(`${$(this).attr('data-modal')} select`).val(3).change();
@@ -59,6 +59,18 @@ document.addEventListener('DOMContentLoaded', function () {
     $(document).on('click', '[data-modal="#removeCommand"]', function () {
         var commandInfo = JSON.parse($(this).parent().parent().parent().attr('data-command-info'));
         $('#removeCommand #commandID').val(commandInfo['_id']);
+    });
+
+    $(document).on('click', '[data-modal="#editMessage"]', function () {
+        var messageInfo = JSON.parse($(this).parent().parent().parent().attr('data-message-info'));
+        $('#editMessage #messageID').val(messageInfo['_id']);
+        $('#editMessage textarea[data-tag="auto-message"]').val(messageInfo['content']);
+        $('#editMessage input[data-tag="auto-message-cooldown"]').val(messageInfo['cooldown']);
+    });
+
+    $(document).on('click', '[data-modal="#removeMessage"]', function () {
+        var messageInfo = JSON.parse($(this).parent().parent().parent().attr('data-message-info'));
+        $('#removeMessage #messageID').val(messageInfo['_id']);
     });
 
     $(document).on('click', '[data-modal="#editQuote"]', function () {
@@ -128,9 +140,17 @@ document.addEventListener('DOMContentLoaded', function () {
                     $(`tr[data-regex-id="${response.data._id}"] .content`).text(`${response.data.response}`);
                 } else if (targetFormName === '#removeRegexForm') {
                     $(`tr[data-regex-id="${response.data._id}"]`).remove();
-                }
+                } else if (targetFormName === '#addMessageForm') {
+                    $('#autoMessages .table tbody').append(`<tr data-message-id="${response.data._id}" data-message-info="${JSON.stringify(response.data).split('"').join('&quot;')}"><td class="name">${response.data.content}</td><td class="actions"><p class="field"><a class="button is-small" data-modal="#editMessage"><span class="icon is-small"><i class="fas fa-pencil-alt"></i></span></a> <a class="button is-small" data-modal="#removeMessage"><span class="icon is-small"><i class="fas fa-trash-alt"></i></span></a></p></td></tr>`);
+                } else if (targetFormName === '#editMessageForm') {
+                    $(`tr[data-message-id="${response.data._id}"]`).attr('data-message-info', JSON.stringify(response.data));
+                    $(`tr[data-message-id="${response.data._id}"] .name`).text(`${response.data.content}`);
+                    $(`tr[data-message-id="${response.data._id}"] .content`).text(`${response.data.response}`);
+                } else if (targetFormName === '#removeMessageForm') {
+                    $(`tr[data-message-id="${response.data._id}"]`).remove();
              } else {
                 $(`${targetFormName} p[data-tag="${response.error}"]`).removeClass('is-hidden');
+             }
             }
         });
     });

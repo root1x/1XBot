@@ -14,6 +14,8 @@ global.channels = {};
         global.channels[channel.name] = channel;
         global.channels[channel.name]['commands'] = {};
         global.channels[channel.name]['regexes'] = [];
+        global.channels[channel.name]['message-count'] = 0;
+        global.channels[channel.name]['messages'] = [];
         config.botSettings.channels.push(channel.name);
     });
 
@@ -27,6 +29,11 @@ global.channels = {};
     var dbRegexes = await api.getRegexes();
     dbRegexes.forEach((regex) => {
         global.channels[regex.channel]['regexes'].push(regex);
+    });
+
+    var dbMessages = await api.getMessages();
+    dbMessages.forEach((message) => {
+        global.channels[message.channel]['messages'].push(message);
     });
 
     functions.log('info', 'Loaded command list');
@@ -49,10 +56,22 @@ global.channels = {};
     global.client.on('chat', async (channel, user, message, self) => {
         if (self) return;
 
+        var autoMessages = [];
         var containsRegex = false;
         var handleMessage = true;
         var split = message.split(' ');
         var userPermission = api.getPrivilege(user);
+
+        global.channels[channel]['message-count']++;
+        global.channels[channel]['messages'].forEach((message) => {
+            if (global.channels[channel]['message-count'] % message.cooldown == 0) {
+                autoMessages.push(message.content);
+            }
+        });
+
+        if (autoMessages.length > 0) {
+            global.client.say(channel, autoMessages[Math.floor(Math.random() * autoMessages.length)]);
+        }
 
         if (userPermission < 2) {
             var banWords = global.channels[channel]['banWords'].split(',');

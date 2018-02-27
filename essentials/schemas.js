@@ -71,6 +71,12 @@ const commands = mongoose.model('commands', new mongoose.Schema({
     }
 }));
 
+const messages = mongoose.model('messages', new mongoose.Schema({
+    channel: String,
+    content: String,
+    cooldown: Number
+}));
+
 const quotes = mongoose.model('quotes', new mongoose.Schema({
     addedBy: String,
     channel: String,
@@ -94,6 +100,7 @@ const regexes = mongoose.model('regexes', new mongoose.Schema({
 module.exports = {
     channels,
     commands,
+    messages,
     quotes,
     regexes
 };

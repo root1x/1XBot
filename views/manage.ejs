@@ -423,11 +423,136 @@
             </header>
             <section class="modal-card-body">
                 <div class="is-centered">
+                    <button class="button is-dark" data-modal="#autoMessages" data-tag="auto-messages"></button>
                     <button class="button is-dark" data-modal="#messageModeration" data-tag="message-moderation"></button>
                     <button class="button is-dark" data-modal="#regexModeration" data-tag="regex-moderation"></button>
                     <button class="button is-dark" data-modal="#linkModeration" data-tag="link-moderation"></button>
                 </div>
             </section>
+        </div>
+    </div>
+
+    <div id="autoMessages" class="modal hidden">
+        <div class="modal-background"></div>
+        <div class="modal-card">
+            <header class="modal-card-head">
+                <p class="modal-card-title" data-tag="auto-messages"></p>
+                <button class="delete" aria-label="close"></button>
+            </header>
+            <section class="modal-card-body">
+                <table class="table is-bordered is-striped is-narrow is-hoverable is-fullwidth">
+                    <thead>
+                        <tr>
+                            <th data-tag="auto-message"></th>
+                            <th data-tag="actions"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% messages.forEach(function (message) {%>
+                            <tr data-message-id="<%= message._id; %>" data-message-info="<%= JSON.stringify(message); %>">
+                                <td class="name">
+                                    <%= message.content; %>
+                                </td>
+                                <td class="actions">
+                                    <p class="field">
+                                        <a class="button is-small" data-modal="#editMessage">
+                                            <span class="icon is-small">
+                                                <i class="fas fa-pencil-alt"></i>
+                                            </span>
+                                        </a>
+                                        <a class="button is-small" data-modal="#removeMessage">
+                                            <span class="icon is-small">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </span>
+                                        </a>
+                                    </p>
+                                </td>
+                            </tr>
+                            <% }, this); %>
+                    </tbody>
+                </table>
+            </section>
+            <footer class="modal-card-foot">
+                <button class="button is-dark" data-tag="add-new-message" data-modal="#addMessage"></button>
+            </footer>
+        </div>
+    </div>
+
+    <div id="addMessage" class="modal hidden">
+        <div class="modal-background"></div>
+        <div class="modal-card">
+            <header class="modal-card-head">
+                <p class="modal-card-title" data-tag="add-new-message"></p>
+                <button class="delete" aria-label="close"></button>
+            </header>
+            <form id="addMessageForm" action="api/addMessage" method="post">
+                <section class="modal-card-body">
+                    <div class="field">
+                        <label class="label" data-tag="auto-message"></label>
+                        <div class="control">
+                            <textarea class="textarea" name="content" data-tag="auto-message"></textarea>
+                            <p class="help is-danger is-hidden" data-tag="invalid-message"></p>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label class="label" data-tag="auto-message-cooldown"></label>
+                        <div class="control">
+                            <input class="input" name="cooldown" type="text" data-tag="auto-message-cooldown">
+                        </div>
+                    </div>
+                </section>
+            </form>
+            <footer class="modal-card-foot">
+                <button class="button is-dark" data-submit="#addMessageForm" data-tag="add-new-message"></button>
+            </footer>
+        </div>
+    </div>
+
+    <div id="editMessage" class="modal hidden">
+        <div class="modal-background"></div>
+        <div class="modal-card">
+            <header class="modal-card-head">
+                <p class="modal-card-title" data-tag="edit-message"></p>
+                <button class="delete" aria-label="close"></button>
+            </header>
+            <form id="editMessageForm" action="api/editMessage" method="post">
+                <section class="modal-card-body">
+                    <input type="hidden" name="id" id="messageID">
+                    <div class="field">
+                        <label class="label" data-tag="auto-message"></label>
+                        <div class="control">
+                            <textarea class="textarea" name="content" data-tag="auto-message"></textarea>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label class="label" data-tag="auto-message-cooldown"></label>
+                        <div class="control">
+                            <input class="input" name="cooldown" type="text" data-tag="auto-message-cooldown">
+                        </div>
+                    </div>
+                </section>
+            </form>
+            <footer class="modal-card-foot">
+                <button class="button is-dark" data-submit="#editMessageForm" data-tag="edit-message"></button>
+            </footer>
+        </div>
+    </div>
+
+    <div id="removeMessage" class="modal hidden">
+        <div class="modal-background"></div>
+        <div class="modal-card">
+            <header class="modal-card-head">
+                <p class="modal-card-title" data-tag="remove-message"></p>
+                <button class="delete" aria-label="close"></button>
+            </header>
+            <form id="removeMessageForm" action="api/removeMessage" method="post">
+                <input type="hidden" name="id" id="messageID">
+            </form>
+            <section class="modal-card-body" data-tag="are-you-sure"></section>
+            <footer class="modal-card-foot">
+                <button class="button is-dark" data-submit="#removeMessageForm" data-tag="yes"></button>
+                <button class="button" data-tag="no"></button>
+            </footer>
         </div>
     </div>
 
@@ -628,6 +753,8 @@
             </footer>
         </div>
     </div>
+
+    
 
     <div id="linkModeration" class="modal hidden">
         <div class="modal-background"></div>

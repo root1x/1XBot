@@ -38,6 +38,26 @@ function addCommand(data) {
     });
 }
 
+function addMessage(data) {
+    return new Promise((resolve, reject) => {
+        schemas.messages.find({
+            channel: data.channel
+        }, (error, response) => {
+            new schemas.messages(data).save((error, response) => {
+                if (error)
+                    resolve({
+                        error: 'an-error-occurred',
+                        success: false
+                    });
+                resolve({
+                    success: true,
+                    response: response
+                });
+            });
+        })
+    });
+}
+
 function addQuote(data) {
     return new Promise((resolve, reject) => {
         new schemas.quotes({
@@ -125,6 +145,8 @@ function checkLogin(cookies) {
                             global.channels[channel] = response;
                             global.channels[channel]['commands'] = {};
                             global.channels[channel]['regexes'] = [];
+                            global.channels[channel]['message-count'] = 0;
+                            global.channels[channel]['messages'] = [];
         
                             global.client.join(channel.replace('#', ''));
         
@@ -166,6 +188,38 @@ function editCommand(data, newData) {
             } else
                 resolve({
                     error: 'command-not-found',
+                    success: false
+                });
+        });
+    });
+}
+
+function editMessage(data, newData) {
+    return new Promise((resolve, reject) => {
+        schemas.messages.find({
+            channel: data.channel,
+            _id: new mongoose.Types.ObjectId(data.id)
+        }, (error, response) => {
+            if (response.length > 0) {
+                schemas.messages.findOneAndUpdate({
+                    _id: new mongoose.Types.ObjectId(data.id)
+                }, newData, {
+                    new: true
+                }, (error, response) => {
+                    if (error)
+                        resolve({
+                            error: 'an-error-occurred',
+                            success: false
+                        });
+
+                    resolve({
+                        response: response,
+                        success: true
+                    });
+                });
+            } else
+                resolve({
+                    error: 'message-not-found',
                     success: false
                 });
         });
@@ -252,6 +306,19 @@ function getChannels(channel) {
 function getCommands(channel) {
     return new Promise((resolve, reject) => {
         schemas.commands.find((channel ? {
+            'channel': channel
+        } : {}), (error, response) => {
+            if (error)
+                reject(error);
+
+            resolve(response);
+        });
+    });
+}
+
+function getMessages(channel) {
+    return new Promise((resolve, reject) => {
+        schemas.messages.find((channel ? {
             'channel': channel
         } : {}), (error, response) => {
             if (error)
@@ -521,6 +588,36 @@ function removeCommand(data) {
     });
 }
 
+function removeMessage(data) {
+    return new Promise((resolve, reject) => {
+        schemas.messages.find({
+            channel: data.channel,
+            _id: new mongoose.Types.ObjectId(data.id)
+        }, (error, response) => {
+            if (response.length > 0) {
+                schemas.messages.findOneAndRemove({
+                    _id: new mongoose.Types.ObjectId(data.id)
+                }, (error, response) => {
+                    if (error)
+                        resolve({
+                            error: 'an-error-occurred',
+                            success: false
+                        });
+
+                    resolve({
+                        response: response,
+                        success: true
+                    });
+                });
+            } else
+                resolve({
+                    error: 'an-error-occurred',
+                    success: false
+                });
+        });
+    });
+}
+
 function removeQuote(data) {
     return new Promise((resolve, reject) => {
         schemas.quotes.find({
@@ -706,16 +803,19 @@ function used(channel, command, timesUsed) {
 
 module.exports = {
     addCommand,
+    addMessage,
     addQuote,
     addRegex,
     checkCooldown,
     checkLogin,
     checkPermissions,
     editCommand,
+    editMessage,
     editQuote,
     editRegex,
     getChannels,
     getCommands,
+    getMessages,
     getPermissions,
     getPrivilege,
     getQuotes,
@@ -723,6 +823,7 @@ module.exports = {
     handleMessage,
     quotify,
     removeCommand,
+    removeMessage,
     removeQuote,
     removeRegex,
     updateBotEditors,
