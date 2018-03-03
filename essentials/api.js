@@ -144,9 +144,10 @@ function checkLogin(cookies) {
                         }).save((error, response) => {
                             global.channels[channel] = response;
                             global.channels[channel]['commands'] = {};
-                            global.channels[channel]['regexes'] = [];
                             global.channels[channel]['message-count'] = 0;
                             global.channels[channel]['messages'] = [];
+                            global.channels[channel]['permits'] = {};
+                            global.channels[channel]['regexes'] = [];
         
                             global.client.join(channel.replace('#', ''));
         
@@ -551,6 +552,11 @@ async function handleMessage(command, user, channel, split, language) {
         } else {
             content = content.split('%title%').join(titleInfo.stream.channel.status);
         }
+    }
+
+    if (content.indexOf('%permit%') !== -1) {
+        content = content.split('%permit%').join('');
+        !split[1] || (global.channels[channel]['permits'][split[1].toLowerCase()] = Date.now() + 60 * 3 * 1000);
     }
 
     return content;

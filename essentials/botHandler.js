@@ -13,9 +13,10 @@ global.channels = {};
     dbChannels.forEach((channel) => {
         global.channels[channel.name] = channel;
         global.channels[channel.name]['commands'] = {};
-        global.channels[channel.name]['regexes'] = [];
         global.channels[channel.name]['message-count'] = 0;
         global.channels[channel.name]['messages'] = [];
+        global.channels[channel.name]['permits'] = {};
+        global.channels[channel.name]['regexes'] = [];
         config.botSettings.channels.push(channel.name);
     });
 
@@ -61,6 +62,7 @@ global.channels = {};
         var handleMessage = true;
         var split = message.split(' ');
         var userPermission = api.getPrivilege(user);
+        var isPermitted = false;
 
         global.channels[channel]['message-count']++;
         global.channels[channel]['messages'].forEach((message) => {
@@ -94,7 +96,9 @@ global.channels = {};
                 }
             });
 
-            if (handleMessage && (global.channels[channel]['subDomainCheck'] || global.channels[channel]['nonSubDomainCheck'])) {
+            !(global.channels[channel]['permits'][user.username.toLowerCase()] && Date.now() <= global.channels[channel]['permits'][user.username.toLowerCase()]) || (isPermitted = true);
+
+            if (!isPermitted && handleMessage && (global.channels[channel]['subDomainCheck'] || global.channels[channel]['nonSubDomainCheck'])) {
                 var subAllowedDomains = global.channels[channel]['subAllowedDomains'].split(',');
                 var nonSubAllowedDomains = global.channels[channel]['nonSubAllowedDomains'].split(',');
                 var caughtWebsites = message.toLowerCase().match(/(https?:\/\/)?(([a-zA-Z0-9-]*)\.){0,}([a-zA-Z0-9-]{2,}\.)([a-zA-Z]{2,}).*?/g);
